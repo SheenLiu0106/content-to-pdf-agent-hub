@@ -1,0 +1,21 @@
+MEMO
+
+To: Executive Leadership
+From: Strategy Team
+Subject: Q1 Pipeline Health — Recommended SDR Reallocation
+
+Following the late-Q4 reorg, the strategy team has been monitoring pipeline composition weekly. Q1 results show pipeline volume held steady (+6% YoY top-of-funnel) but stage-2 conversion fell 18% vs Q4.
+
+Three enterprise accounts — Acme Corp, Beta Inc, and Gamma Ltd — represent 60% of the stalled value, all currently sitting in extended legal review. Meanwhile, mid-market pipeline is up 23% but the team is understaffed to work it.
+
+Recommendations:
+- Reallocate two SDRs from enterprise to mid-market outbound, effective immediately.
+- Embed legal counsel earlier in any enterprise deal exceeding $250k to compress procurement cycles.
+
+Next steps:
+- Strategy will run an updated staffing model by next Friday.
+- We will brief the CRO on the legal-embed proposal in our 1:1 this Thursday.
+
+Supporting evidence is drawn from the pipeline dashboard snapshot dated April 30, 2026 and a set of 12 stalled-deal interview notes collected in March.
+
+We need approval on the SDR reallocation by end of week to retain our April pipeline targets.

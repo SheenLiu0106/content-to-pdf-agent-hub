@@ -1,0 +1,20 @@
+{
+  "name": "content-to-pdf",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Paste raw content, get a branded PDF report. Pluggable Claude/OpenAI/Gemini extraction.",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "concurrently -n backend,frontend -c blue,magenta \"npm:dev -w backend\" \"npm:dev -w frontend\"",
+    "dev:backend": "npm run dev -w backend",
+    "dev:frontend": "npm run dev -w frontend",
+    "build": "npm run build -w backend && npm run build -w frontend",
+    "install:browsers": "npx playwright install chromium"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  }
+}

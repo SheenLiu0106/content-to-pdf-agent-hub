@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 48" width="220" height="48">
+  <rect x="0" y="8" width="32" height="32" rx="6" fill="#0F172A"/>
+  <path d="M9 32 L16 14 L23 32 L20 32 L18 27 L14 27 L12 32 Z M15 24 L17 24 L16 21 Z" fill="#F8FAFC"/>
+  <text x="44" y="32" font-family="Inter, Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#0F172A" letter-spacing="-0.5">Content Report</text>
+</svg>

@@ -1,0 +1,27 @@
+Case Study: How Northwind Logistics Cut Dispatch Errors by 42% in 90 Days
+
+Client: Northwind Logistics
+Audience: Operations leaders evaluating dispatch automation
+
+Background
+Northwind operates a regional freight network with 1,200 daily dispatches across four hubs. Manual dispatch routing relied on a spreadsheet workflow that produced an average of 38 routing errors per week, costing roughly $480k in fuel waste and rework annually.
+
+Approach
+The Northwind operations team partnered with our solutions group to roll out an automated dispatch engine in three phases:
+
+1. Data capture overhaul. We standardized vehicle telemetry intake from three legacy providers into a unified feed.
+2. Routing logic migration. We translated the most-used spreadsheet macros into a deterministic rules engine, then layered an ML-based optimization pass on top.
+3. Pilot then expand. We piloted at the Cleveland hub for six weeks before expanding to Chicago, Indianapolis, and Detroit.
+
+Results
+- Routing errors dropped from 38/week to 22/week, a 42% reduction
+- Average dispatch time fell from 11 minutes to 4 minutes
+- Estimated annualized savings: $310k in fuel + $90k in labor reallocation
+- Dispatcher NPS climbed from 21 to 58
+
+Key takeaways
+- A clean data layer was the unlock — most of the prior errors stemmed from inconsistent feeds, not bad logic.
+- Phased rollout per hub built trust with dispatchers who had been burned by prior automation attempts.
+- Keeping a "human in the loop" override on every routing decision was critical to adoption.
+
+If you are evaluating dispatch automation, we'd be glad to share more details — reach out to start a conversation.
