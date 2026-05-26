@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { ContentSchema } from "../shared/schema.js";
+import { RenderPdfRequestSchema } from "../shared/useCaseSchema.js";
 import { renderPdf } from "../pdf/renderer.js";
 
 function slugify(text: string): string {
@@ -8,24 +8,26 @@ function slugify(text: string): string {
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "")
-      .slice(0, 60) || "content-report"
+      .slice(0, 60) || "success-story"
   );
 }
 
 export async function registerRenderPdfRoute(app: FastifyInstance) {
   app.post("/api/render-pdf", async (req, reply) => {
-    const parsed = ContentSchema.safeParse(req.body);
+    const parsed = RenderPdfRequestSchema.safeParse(req.body);
     if (!parsed.success) {
       return reply.code(400).send({
-        error: "invalid_content",
-        message: "Request body did not match the Content schema",
+        error: "invalid_request",
+        message: "Request body did not match the use case schema",
         issues: parsed.error.issues,
       });
     }
 
     try {
-      const pdf = await renderPdf(parsed.data);
-      const filename = `content-report-${slugify(parsed.data.title)}.pdf`;
+      const filename = `success-story-${slugify(parsed.data.content.title)}.pdf`;
+      const pdf = await renderPdf(parsed.data.content, parsed.data.config, {
+        filename,
+      });
       reply
         .header("Content-Type", "application/pdf")
         .header("Content-Disposition", `attachment; filename="${filename}"`)

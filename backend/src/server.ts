@@ -4,12 +4,13 @@ import { config } from "./config.js";
 import { registerHealthRoute } from "./routes/health.js";
 import { registerExtractRoute } from "./routes/extract.js";
 import { registerRenderPdfRoute } from "./routes/renderPdf.js";
+import { registerValidateMermaidRoute } from "./routes/validateMermaid.js";
 import { shutdownRenderer } from "./pdf/renderer.js";
 
 async function buildServer() {
   const app = Fastify({
     logger: true,
-    bodyLimit: 2 * 1024 * 1024, // 2 MB — comfortably above 50k char limit
+    bodyLimit: 8 * 1024 * 1024, // 8 MB — accommodates base64 hero image + logo uploads
   });
 
   await app.register(cors, {
@@ -20,6 +21,7 @@ async function buildServer() {
   await registerHealthRoute(app);
   await registerExtractRoute(app);
   await registerRenderPdfRoute(app);
+  await registerValidateMermaidRoute(app);
 
   return app;
 }

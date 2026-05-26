@@ -1,6 +1,7 @@
 import { chromium, type Browser } from "playwright";
-import { renderTemplate } from "./template.js";
-import type { Content } from "../shared/schema.js";
+import { renderUseCaseTemplate, buildFooterTemplate } from "./usecaseTemplate.js";
+import { renderMermaidToSvg } from "./mermaid.js";
+import type { UseCase, PdfRenderConfig } from "../shared/useCaseSchema.js";
 
 let browserPromise: Promise<Browser> | null = null;
 
@@ -30,9 +31,57 @@ function releaseSlot(): void {
   if (next) next();
 }
 
-export async function renderPdf(content: Content, templateId = "branded-report"): Promise<Buffer> {
-  const html = renderTemplate(templateId, content);
+export interface SupportingVisualResolved {
+  imageDataUrl: string | null;
+  mermaidSvg: string;
+  caption: string | null;
+}
 
+async function resolveSupportingVisual(
+  content: UseCase,
+  config: PdfRenderConfig,
+  browser: Browser
+): Promise<SupportingVisualResolved> {
+  if (!config.supportingVisualEnabled || !config.supportingVisualType) {
+    return { imageDataUrl: null, mermaidSvg: "", caption: null };
+  }
+
+  if (config.supportingVisualType === "image") {
+    if (!config.supportingImageDataUrl) {
+      return { imageDataUrl: null, mermaidSvg: "", caption: null };
+    }
+    return {
+      imageDataUrl: config.supportingImageDataUrl,
+      mermaidSvg: "",
+      caption: config.supportingImageCaption,
+    };
+  }
+
+  // Mermaid path — only attempt render if the user verified it in the UI.
+  // If unverified, omit the whole supporting visual block (no title-only section).
+  if (!config.mermaidVerified) {
+    return { imageDataUrl: null, mermaidSvg: "", caption: null };
+  }
+  const code = content.mermaidDiagram?.code;
+  if (!code) {
+    return { imageDataUrl: null, mermaidSvg: "", caption: null };
+  }
+  try {
+    const result = await renderMermaidToSvg(code, browser);
+    if (result.fallback || !result.svg) {
+      return { imageDataUrl: null, mermaidSvg: "", caption: null };
+    }
+    return { imageDataUrl: null, mermaidSvg: result.svg, caption: null };
+  } catch {
+    return { imageDataUrl: null, mermaidSvg: "", caption: null };
+  }
+}
+
+export async function renderPdf(
+  content: UseCase,
+  config: PdfRenderConfig,
+  opts: { filename?: string } = {}
+): Promise<Buffer> {
   await acquireSlot();
   let browser: Browser;
   try {
@@ -42,19 +91,57 @@ export async function renderPdf(content: Content, templateId = "branded-report")
     throw err;
   }
 
-  const context = await browser.newContext();
-  const page = await context.newPage();
   try {
-    await page.setContent(html, { waitUntil: "load" });
-    const pdf = await page.pdf({
-      format: "Letter",
-      printBackground: true,
-      margin: { top: "0.75in", right: "0.75in", bottom: "0.75in", left: "0.75in" },
-    });
-    return pdf;
+    const supporting = await resolveSupportingVisual(content, config, browser);
+
+    const html = renderUseCaseTemplate(content, config, supporting);
+
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    try {
+      await page.setContent(html, { waitUntil: "load" });
+
+      const footerLabel = opts.filename ?? content.title ?? "";
+      const pdf = await page.pdf({
+        format: "Letter",
+        printBackground: true,
+        // top/left/right = 0 so the cover hero is flush against the page
+        // edges. bottom reserves a thin band for the small technical footer
+        // (file name + page X / Y). No top header — nothing should overlay
+        // the page 1 hero image.
+        margin: { top: "0", right: "0", bottom: "0.35in", left: "0" },
+        displayHeaderFooter: true,
+        headerTemplate: "<span></span>",
+        footerTemplate: buildFooterTemplate(footerLabel),
+      });
+      return pdf;
+    } finally {
+      await page.close();
+      await context.close();
+    }
   } finally {
-    await page.close();
-    await context.close();
+    releaseSlot();
+  }
+}
+
+export async function validateMermaid(
+  code: string
+): Promise<{ ok: boolean; svg: string }> {
+  await acquireSlot();
+  let browser: Browser;
+  try {
+    browser = await getBrowser();
+  } catch (err) {
+    releaseSlot();
+    throw err;
+  }
+  try {
+    const result = await renderMermaidToSvg(code, browser);
+    const ok = Boolean(result.svg) && !result.fallback;
+    return { ok, svg: ok ? result.svg : "" };
+  } catch {
+    return { ok: false, svg: "" };
+  } finally {
     releaseSlot();
   }
 }

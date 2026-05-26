@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { ExtractRequestSchema } from "../shared/schema.js";
-import { normalizeContent } from "../shared/normalize.js";
+import { normalizeUseCase } from "../shared/normalizeUseCase.js";
 import { getProvider } from "../llm/factory.js";
 import { LLMProviderError } from "../llm/provider.js";
 
@@ -18,7 +18,7 @@ export async function registerExtractRoute(app: FastifyInstance) {
     const provider = getProvider();
     try {
       const extracted = await provider.extract(parsed.data.rawContent);
-      const normalized = normalizeContent(extracted);
+      const normalized = normalizeUseCase(extracted);
       return reply.send(normalized);
     } catch (err) {
       if (err instanceof LLMProviderError) {

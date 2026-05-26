@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 700" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0F172A"/>
+      <stop offset="100%" stop-color="#06B6D4"/>
+    </linearGradient>
+    <radialGradient id="dot" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1600" height="700" fill="url(#bg)"/>
+  <circle cx="320" cy="180" r="260" fill="url(#dot)"/>
+  <circle cx="1280" cy="540" r="320" fill="url(#dot)"/>
+  <g fill="#ffffff" opacity="0.85" font-family="-apple-system, Segoe UI, Inter, Helvetica, Arial, sans-serif">
+    <text x="80" y="380" font-size="64" font-weight="700" letter-spacing="-1">USE CASE</text>
+    <text x="80" y="440" font-size="28" font-weight="400" opacity="0.85">Hero image placeholder</text>
+  </g>
+</svg>

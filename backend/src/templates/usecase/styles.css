@@ -1,0 +1,403 @@
+@page {
+  size: Letter;
+  margin: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Helvetica, Arial, sans-serif;
+  color: #0f172a;
+  font-size: 10.5pt;
+  line-height: 1.5;
+}
+
+.doc {
+  width: 100%;
+}
+
+/* ============================== Cover (page 1) ============================ */
+.cover {
+  page-break-after: always;
+  break-after: page;
+}
+
+/* Hero — flush at top of page 1, logo overlayed in upper-left. */
+.hero {
+  position: relative;
+  width: 100%;
+  height: 3.2in;
+  overflow: hidden;
+  background: #e2e8f0;
+}
+
+.hero img,
+.hero svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hero-logo-overlay {
+  position: absolute;
+  top: 0.35in;
+  left: 0.45in;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 6px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+  font-weight: 700;
+  font-size: 12pt;
+  color: var(--primary);
+  letter-spacing: -0.2px;
+  max-width: 3in;
+}
+
+.hero-logo-overlay img {
+  max-height: 30px;
+  max-width: 2.6in;
+  width: auto;
+  height: auto;
+  display: block;
+}
+
+.hero-website-overlay {
+  position: absolute;
+  top: 0.4in;
+  right: 0.45in;
+  padding: 4px 10px;
+  background: rgba(15, 23, 42, 0.55);
+  color: #ffffff;
+  border-radius: 4px;
+  font-size: 8.5pt;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+/* Cover body — padded content area below the hero. */
+.cover-body {
+  padding: 0.32in 0.6in 0.5in;
+}
+
+.cover-body .doc-label {
+  display: inline-block;
+  font-size: 9pt;
+  font-weight: 700;
+  letter-spacing: 2.4px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+
+.accent-rule {
+  width: 42px;
+  height: 3px;
+  background: var(--accent);
+  border-radius: 2px;
+  margin: 0 0 12px;
+}
+
+.cover-body .title {
+  font-size: 24pt;
+  line-height: 1.1;
+  letter-spacing: -0.6px;
+  color: var(--primary);
+  margin: 0 0 6px;
+  font-weight: 700;
+}
+
+.cover-body .subtitle {
+  font-size: 12pt;
+  color: #334155;
+  margin: 0 0 10px;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  font-size: 9pt;
+  color: #475569;
+  margin: 6px 0 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.meta-row .meta-label {
+  font-weight: 700;
+  color: #0f172a;
+  margin-right: 4px;
+}
+
+/* Goals / Challenges / Solutions / Results — compact 2×2 grid */
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 0.32in;
+  row-gap: 0.16in;
+  margin-top: 4px;
+}
+
+.summary-section {
+  break-inside: avoid;
+  page-break-inside: avoid;
+  padding: 0.1in 0 0.04in;
+  border-top: 1.5px solid var(--accent);
+}
+
+.summary-section.card-challenges {
+  border-top-color: #f59e0b;
+}
+.summary-section.card-solutions {
+  border-top-color: var(--primary);
+}
+.summary-section.card-results {
+  border-top-color: #10b981;
+}
+
+.summary-section h3 {
+  font-size: 10.5pt;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--primary);
+  margin: 0 0 6px;
+  font-weight: 700;
+}
+
+.summary-section ul {
+  margin: 0;
+  padding-left: 14px;
+}
+
+.summary-section li {
+  font-size: 10pt;
+  line-height: 1.4;
+  margin-bottom: 4px;
+  color: #1e293b;
+}
+
+.summary-section li:last-child {
+  margin-bottom: 0;
+}
+
+/* ============================== Content pages (2+) ======================== */
+/* Every page after the cover is wrapped in a .content-page. The compact
+   header sits at the top, the body holds the actual narrative or visual.
+   Padding lives on .content-page so the header aligns with the body. */
+.content-page {
+  padding: 0.45in 0.6in 0.55in;
+}
+
+/* The supporting visual lives on its own page so the compact header is
+   guaranteed to appear above it. page-break-before never creates an
+   *extra* page beyond this one — there is no trailing content wrapper. */
+.content-page.supporting-visual-page {
+  page-break-before: always;
+  break-before: page;
+}
+
+/* Compact content header — small, subtle, single-line. No dark band,
+   no large brand block. Brand / document label on the left, short title
+   on the right (truncated with ellipsis when long). */
+.content-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.18in;
+  margin-bottom: 0.18in;
+  padding-bottom: 0.07in;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 8pt;
+  color: #64748b;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.content-page-header-brand {
+  flex: 0 0 auto;
+  color: #0f172a;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.content-page-header-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: #334155;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: right;
+}
+
+.narrative h2 {
+  font-size: 14pt;
+  color: var(--primary);
+  margin: 18px 0 6px;
+  letter-spacing: -0.2px;
+}
+
+/* First heading right after the compact header should hug the top so the
+   header-to-content gap stays tight and we don't push content onto a new
+   page just from accumulated top margin. */
+.content-page-body > :first-child,
+.content-page-body > :first-child > h2:first-child {
+  margin-top: 0;
+}
+
+.narrative h3 {
+  font-size: 11.5pt;
+  color: var(--primary);
+  margin: 14px 0 4px;
+}
+
+.narrative p {
+  margin: 0 0 8px;
+  text-align: justify;
+  hyphens: auto;
+}
+
+.exec-summary {
+  background: color-mix(in srgb, var(--accent) 8%, white);
+  border-left: 4px solid var(--accent);
+  padding: 12px 14px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  break-inside: avoid;
+}
+
+.exec-summary h2 {
+  margin-top: 0;
+  font-size: 11pt;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+
+.narrative-section {
+  break-inside: avoid;
+  margin-bottom: 14px;
+}
+
+.pull-quote {
+  border-left: 4px solid var(--primary);
+  background: #f1f5f9;
+  padding: 14px 18px;
+  margin: 18px 0;
+  font-size: 11.5pt;
+  font-style: italic;
+  color: #1e293b;
+  border-radius: 4px;
+  break-inside: avoid;
+}
+
+.pull-quote .quote-attribution {
+  display: block;
+  margin-top: 8px;
+  font-size: 9pt;
+  font-style: normal;
+  color: #475569;
+  letter-spacing: 0.4px;
+}
+
+/* Supporting visual block (uploaded image or rendered Mermaid SVG) */
+.supporting-visual {
+  margin: 18px 0;
+  padding: 14px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  break-inside: avoid;
+}
+
+.supporting-visual .visual-title {
+  font-size: 9pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.6px;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.supporting-visual .visual-svg,
+.supporting-visual .visual-image {
+  text-align: center;
+}
+
+.supporting-visual .visual-svg svg {
+  max-width: 100%;
+  height: auto;
+  max-height: 4.5in;
+}
+
+.supporting-visual .visual-image img {
+  max-width: 100%;
+  height: auto;
+  max-height: 4.5in;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.supporting-visual .visual-desc {
+  margin-top: 8px;
+  font-size: 9pt;
+  color: #475569;
+  text-align: center;
+}
+
+/* CTA */
+.cta {
+  margin-top: 22px;
+  padding: 14px 16px;
+  background: var(--primary);
+  color: #ffffff;
+  border-radius: 8px;
+  font-size: 11pt;
+  break-inside: avoid;
+}
+
+.cta .cta-label {
+  display: block;
+  font-size: 8.5pt;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--accent) 60%, white);
+  margin-bottom: 4px;
+}
+
+/* Compact copyright line — sits inline at the end of the narrative content.
+   No dark block, no flex wrapper, no forced page break. Never split vertically. */
+.document-copyright {
+  margin-top: 0.25in;
+  padding-top: 0.08in;
+  border-top: 1px solid #e5e7eb;
+  font-size: 9px;
+  color: #64748b;
+  text-align: right;
+  break-inside: avoid;
+  page-break-inside: avoid;
+  page-break-before: avoid;
+  break-before: avoid;
+}

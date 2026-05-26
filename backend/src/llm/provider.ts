@@ -1,8 +1,8 @@
-import type { Content } from "../shared/schema.js";
+import type { UseCase } from "../shared/useCaseSchema.js";
 
 export interface LLMProvider {
   readonly name: "claude" | "openai" | "gemini";
-  extract(rawContent: string): Promise<Content>;
+  extract(rawContent: string): Promise<UseCase>;
 }
 
 export class LLMProviderError extends Error {

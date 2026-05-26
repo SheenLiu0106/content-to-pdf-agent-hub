@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>{{title}}</title>
+    <style>{{styles}}</style>
+    <style>:root { --primary: {{primaryColor}}; --accent: {{accentColor}}; }</style>
+  </head>
+  <body>
+    <main class="doc">
+      <!-- Page 1: Cover + Summary. No content header — the hero is flush at
+           the top of the page and must not be overlaid. -->
+      <section class="cover">
+        <div class="hero">
+          {{heroBlock}}
+          <div class="hero-overlay">
+            <div class="hero-logo-overlay">{{brandHeader}}</div>
+            {{websiteOverlay}}
+          </div>
+        </div>
+
+        <div class="cover-body">
+          <div class="doc-label">{{documentLabel}}</div>
+          <div class="accent-rule"></div>
+          <h1 class="title">{{title}}</h1>
+          {{subtitleBlock}}
+          {{metaRow}}
+
+          <div class="summary-grid">
+            {{goalsBlock}}
+            {{challengesBlock}}
+            {{solutionsBlock}}
+            {{resultsBlock}}
+          </div>
+        </div>
+      </section>
+
+      <!-- Page 2: Narrative content. A compact content header (brand /
+           document label · title) sits above the body; the per-page file
+           name and page X / Y are rendered via Chromium's `footerTemplate`
+           in the reserved bottom margin. The copyright line below is a
+           one-time, end-of-document line — included here only when there
+           is no separate supporting-visual page. -->
+      <section class="content-page narrative-page">
+        {{contentHeader}}
+        <div class="content-page-body narrative">
+          {{executiveSummaryBlock}}
+          {{narrativeBlock}}
+          {{pullQuoteBlock}}
+          {{ctaBlock}}
+          {{narrativeCopyrightBlock}}
+        </div>
+      </section>
+
+      <!-- Optional page 3: Supporting visual (uploaded image or rendered
+           Mermaid SVG) on its own page so it gets its own compact header.
+           Omitted entirely if there is no usable supporting visual. -->
+      {{supportingVisualPageBlock}}
+    </main>
+  </body>
+</html>

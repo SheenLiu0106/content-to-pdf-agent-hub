@@ -5,7 +5,8 @@ const ProviderEnum = z.enum(["claude", "openai", "gemini"]);
 export type Provider = z.infer<typeof ProviderEnum>;
 
 const BaseEnvSchema = z.object({
-  LLM_PROVIDER: ProviderEnum.default("claude"),
+  LLM_PROVIDER: ProviderEnum.default("gemini"),
+  EXPANSION_MODE: z.enum(["strict", "standard"]).default("standard"),
   PORT: z.coerce.number().int().positive().default(8787),
   CORS_ORIGIN: z.string().default("http://localhost:5173"),
 

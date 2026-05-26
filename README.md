@@ -1,20 +1,21 @@
-# Content to PDF
+# SHEEN — Content to PDF
 
-Paste raw content → AI extracts a structured schema → download a branded PDF report.
+Paste raw content → AI extracts a structured **customer case study** → edit anything → upload a hero image → download a branded PDF with summary sections, narrative, and an auto-generated Mermaid diagram.
 
-The user only ever does one thing: **paste**. The AI identifies the content type, extracts a stable JSON schema, and the system renders a fixed branded HTML/CSS template through Playwright. Missing or weak fields are flagged in the preview but never block PDF generation.
+The user does four things: **paste** their source content, **review and edit** the AI's extraction, set **brand** assets (logo, hero image, colors), and **generate** the PDF. The AI extracts Goals / Challenges / Solutions / Results, polishes the narrative, and generates a small Mermaid flowchart. Playwright renders the result through a fixed `usecase` HTML/CSS template. Missing or weak fields are flagged in the preview but never block PDF generation.
 
 ## Stack
 
-- **Backend:** Node 20 + TypeScript + Fastify + Playwright
+- **Backend:** Node 20 + TypeScript + Fastify + Playwright + Mermaid (pre-rendered to SVG server-side)
 - **Frontend:** Vite + React + TypeScript + Tailwind
-- **AI:** Pluggable provider adapter — Claude, OpenAI, or Gemini via env var (bring your own key)
+- **AI:** Pluggable provider adapter — Gemini, Claude, or OpenAI via env var (bring your own key)
 - **Schema:** Zod, shared between frontend and backend as the single source of truth
 - **State:** Stateless. No database, no auth, no submission history.
+- **Package manager:** pnpm workspaces
 
 ## Supported content types
 
-`general_article`, `newsletter`, `case_study`, `project_summary`, `executive_memo`, `marketing_brief`, `proposal_draft`, `meeting_summary`.
+`use_case`, `success_story`, `case_study`, `project_summary`, `marketing_brief`, `executive_memo`, `general_article`.
 
 ## Quick start
 
@@ -23,20 +24,29 @@ git clone <this repo>
 cd content-to-pdf
 
 # Install workspace deps
-npm install
+pnpm install
 
 # Install Playwright's chromium browser (one-time)
-npm run install:browsers
+pnpm install:browsers
 
 # Configure your LLM provider (see `.env.example`)
 cp .env.example backend/.env
 # Edit backend/.env and set LLM_PROVIDER + the matching API key
 
 # Start backend + frontend
-npm run dev
+pnpm dev
 ```
 
 Then open <http://localhost:5173>.
+
+Useful workspace scripts:
+
+| Script | What it does |
+|---|---|
+| `pnpm dev` | Start backend (Fastify) + frontend (Vite) concurrently |
+| `pnpm build` | Type-check + emit backend, build frontend bundle |
+| `pnpm typecheck` | Run TypeScript across both workspaces, no emit |
+| `pnpm install:browsers` | Install Chromium for Playwright |
 
 ## Environment variables
 
@@ -44,17 +54,20 @@ Set in `backend/.env`. Only the credentials for the selected `LLM_PROVIDER` are 
 
 | Variable | Default | Notes |
 |---|---|---|
-| `LLM_PROVIDER` | `claude` | One of `claude`, `openai`, `gemini` |
+| `LLM_PROVIDER` | `gemini` | One of `gemini`, `claude`, `openai` |
+| `EXPANSION_MODE` | `standard` | `standard` allows light expansion (industry context, transitions); `strict` is extraction-only |
+| `GOOGLE_API_KEY` | — | Required when `LLM_PROVIDER=gemini` |
+| `GOOGLE_MODEL` | `gemini-2.0-flash` | Any generateContent-capable model |
 | `ANTHROPIC_API_KEY` | — | Required when `LLM_PROVIDER=claude` |
 | `ANTHROPIC_MODEL` | `claude-sonnet-4-6` | Any messages-API capable model |
 | `OPENAI_API_KEY` | — | Required when `LLM_PROVIDER=openai` |
 | `OPENAI_MODEL` | `gpt-4o` | Must support JSON-schema response format |
-| `GOOGLE_API_KEY` | — | Required when `LLM_PROVIDER=gemini` |
-| `GOOGLE_MODEL` | `gemini-2.0-flash` | Any generateContent-capable model |
 | `PORT` | `8787` | Fastify port |
 | `CORS_ORIGIN` | `http://localhost:5173` | Vite dev origin |
 
 The backend fails fast at boot if `LLM_PROVIDER` is set without the matching key.
+
+Branding (brand name, website, document label, colors, logo, hero image) is configured **from the frontend settings panel**, not env. No API keys live in this repo.
 
 ## How it works
 
@@ -62,20 +75,21 @@ The backend fails fast at boot if `LLM_PROVIDER` is set without the matching key
 ┌──────────┐     POST /api/extract       ┌─────────────┐
 │  React   │ ───────────────────────────▶│  Fastify    │
 │  Vite    │                             │             │
-│  (5173)  │ ◀────  Content JSON ────────│  LLM        │── Claude / OpenAI / Gemini
+│  (5173)  │ ◀──── UseCase JSON ─────────│  LLM        │── Gemini / Claude / OpenAI
 └──────────┘                             │  Provider   │
      │                                   │  Adapter    │
      │                                   └─────────────┘
      │
-     │       POST /api/render-pdf
-     │  ──────────────────────────▶  Fastify ──▶ Playwright(chromium) ──▶ PDF
-     │
-     │  ◀──── application/pdf binary ────
-     ▼
+     │       POST /api/render-pdf      ┌────────────────┐
+     │  ─── { content, config } ──────▶│  Fastify       │
+     │                                 │   ├ Mermaid →  │── Playwright tab → SVG
+     │                                 │   └ Template → │── Playwright tab → PDF
+     │  ◀──── application/pdf binary ──┤                │
+     ▼                                 └────────────────┘
   download
 ```
 
-Two distinct API calls (extract → render) so a future "edit before render" step can be inserted without backend changes.
+Two distinct API calls (extract → render) so the user can tweak branding, swap the hero image, and regenerate without re-running extraction.
 
 ## API
 
@@ -87,7 +101,7 @@ Request:
 { "rawContent": "...paste contents..." }
 ```
 
-Response: the `Content` Zod schema (see [backend/src/shared/schema.ts](backend/src/shared/schema.ts)).
+Response: a normalized `UseCase` object (see [backend/src/shared/useCaseSchema.ts](backend/src/shared/useCaseSchema.ts)) — title, subtitle, contentType, client meta, goals/challenges/solutions/results, executive summary, narrative sections, pull quotes, Mermaid diagram, call to action, missingFields, expansionNotes.
 
 Errors:
 
@@ -100,66 +114,65 @@ Errors:
 
 ### `POST /api/render-pdf`
 
-Request: a valid `Content` object (typically the result of `/api/extract`).
-Response: `application/pdf` binary with `Content-Disposition: attachment; filename="content-report-{title-slug}.pdf"`.
+Request:
+
+```json
+{
+  "content": { /* a UseCase object */ },
+  "config":  { /* a PdfRenderConfig — all fields optional with defaults */ }
+}
+```
+
+`PdfRenderConfig` fields:
+
+| Field | Type | Default |
+|---|---|---|
+| `templateId` | `"usecase"` | `"usecase"` |
+| `brandName` | string | `"Your Company"` |
+| `brandWebsite` | string | `"https://example.com"` |
+| `documentLabel` | string | `"CUSTOMER CASE STUDY"` |
+| `brandCopyright` | string | `"© 2026 Sheen Liu. All rights reserved."` |
+| `primaryColor` | `#RRGGBB` | `"#0F172A"` |
+| `accentColor` | `#RRGGBB` | `"#06B6D4"` |
+| `logoDataUrl` | `data:image/(png\|jpeg\|svg+xml);base64,…` or null | `null` |
+| `heroImageDataUrl` | `data:image/(png\|jpeg\|webp);base64,…` or null | `null` |
+
+Body limit is 8 MB to comfortably fit a downscaled hero image plus logo.
+
+Response: `application/pdf` binary with `Content-Disposition: attachment; filename="use-case-{title-slug}.pdf"`.
 
 ### `GET /api/health`
 
 ```json
-{ "status": "ok", "provider": "claude" }
+{ "status": "ok", "provider": "gemini" }
 ```
 
-## Customizing the brand
+## The `usecase` template
 
-The PDF visuals live in [backend/src/templates/branded-report/](backend/src/templates/branded-report):
+Files live under [backend/src/templates/usecase/](backend/src/templates/usecase):
 
-- `logo.svg` — replace with your own logo (SVG recommended; gets embedded as a data URI)
-- `styles.css` — print-tuned CSS, edit colors / fonts / `@page` margins
-- `template.html` — the structural template; placeholders are `{{key}}` and a small set of pre-built blocks (`{{keyPointsBlock}}`, etc.)
+- `template.html` — page 1 (brand header / hero / title / meta / Goals · Challenges · Solutions · Results) and pages 2–3 (executive summary, narrative sections, pull quotes, Mermaid diagram, CTA, footer).
+- `styles.css` — print-tuned CSS using `var(--primary)` and `var(--accent)` (injected from `config`).
+- `placeholder-hero.svg` — used when the user does not upload a hero image.
+- `meta.json` — template descriptor.
 
 No build step is needed for template edits — the renderer reads templates from disk on startup (cached per process).
 
-## Adding a new template
+## Mermaid diagram pipeline
 
-1. Create a new directory under `backend/src/templates/`, e.g. `quarterly-report/`.
-2. Add `template.html`, `styles.css`, `logo.svg`, and a `meta.json` ID/name.
-3. Pass `templateId` to `renderPdf(content, templateId)` in [backend/src/routes/renderPdf.ts](backend/src/routes/renderPdf.ts) (currently hardcoded to `"branded-report"`).
-4. (Future) Expose a `templateId` field in the request body and a picker UI on the frontend.
+1. The AI generates a small Mermaid `flowchart LR` or `flowchart TD` (5–8 short-labeled nodes) as part of the extraction response.
+2. Before the main PDF render, [`backend/src/pdf/mermaid.ts`](backend/src/pdf/mermaid.ts) sanitizes the code (strips `click` directives, HTML, special characters; enforces the directive on line 1) and renders it to SVG inside a small Playwright sandbox page using the local Mermaid bundle from `node_modules`.
+3. The resulting SVG string is inlined into the main `template.html` before the final PDF render.
+4. If Mermaid rendering fails for any reason, the PDF still generates — the diagram section falls back to a styled box with title + description, never raw `flowchart …` code.
 
-## Project layout
-
-```
-content-to-pdf/
-├── backend/
-│   ├── src/
-│   │   ├── server.ts                 # Fastify bootstrap
-│   │   ├── config.ts                 # Env validation
-│   │   ├── routes/                   # /api/health, /api/extract, /api/render-pdf
-│   │   ├── llm/                      # provider.ts + claude.ts/openai.ts/gemini.ts + factory.ts + prompt.ts
-│   │   ├── pdf/                      # renderer.ts (Playwright) + template.ts
-│   │   ├── templates/branded-report/ # template.html + styles.css + logo.svg + meta.json
-│   │   └── shared/                   # schema.ts (Zod) + normalize.ts
-│   └── package.json
-├── frontend/
-│   ├── src/
-│   │   ├── pages/ContentToPdfPage.tsx   # extract → preview → render state machine
-│   │   ├── components/                  # PasteArea, ExtractionPreview, ContentTypeTag, etc.
-│   │   ├── lib/api.ts                   # typed fetch wrappers
-│   │   └── styles/tailwind.css
-│   └── package.json
-├── examples/                         # sample paste content
-├── .env.example
-└── package.json                      # npm workspaces root
-```
-
-## Out of scope (MVP)
+## Out of scope
 
 - Reviewer email submission
 - Authentication / multi-user
 - Multiple templates / template picker UI
 - Submission history / re-download
-- File upload (PDF, DOCX) as input — paste-only for MVP
-- Inline editing of extracted fields
+- File upload (PDF, DOCX) as source content — paste-only
+- Real AI image generation — the hero image is user-uploaded
 
 These are intentional. Add them when the core flow is proven.
 

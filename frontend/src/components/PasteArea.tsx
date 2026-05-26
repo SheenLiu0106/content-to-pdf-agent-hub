@@ -16,17 +16,14 @@ export default function PasteArea({ value, onChange, onExtract, loading }: Props
 
   return (
     <div className="flex flex-col gap-3">
-      <label className="text-sm font-medium text-slate-700">
-        Paste any content — article, memo, newsletter, meeting notes…
-      </label>
       <textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="Paste here. The AI will identify the content type and extract structure automatically."
-        className="min-h-[260px] w-full resize-y rounded-lg border border-slate-300 bg-white p-4 font-sans text-sm leading-relaxed text-slate-800 shadow-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+        placeholder="Paste a customer story, case study draft, project recap, or any narrative content. The AI will identify the structure (goals, challenges, solutions, results) and prepare it for review."
+        className="min-h-[320px] w-full resize-y rounded-lg border border-slate-300 bg-slate-50/50 p-4 font-sans text-sm leading-relaxed text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100"
         disabled={loading}
       />
-      <div className="flex items-center justify-between text-xs text-slate-500">
+      <div className="flex items-center justify-between gap-3 text-xs text-slate-500">
         <span>
           {length.toLocaleString()} / {MAX.toLocaleString()} chars
           {tooShort && length > 0 && <span className="ml-2 text-amber-600">need at least {MIN}</span>}
@@ -37,9 +34,9 @@ export default function PasteArea({ value, onChange, onExtract, loading }: Props
           onClick={onExtract}
           disabled={!canExtract}
           title={tooShort ? "Paste content to continue" : tooLong ? "Content too long" : "Extract structure with AI"}
-          className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-slate-300"
+          className="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-slate-300"
         >
-          {loading ? "Extracting…" : "Extract"}
+          {loading ? "Extracting…" : "Extract content →"}
         </button>
       </div>
     </div>

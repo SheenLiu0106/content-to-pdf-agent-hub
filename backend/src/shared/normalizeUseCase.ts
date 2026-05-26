@@ -1,19 +1,21 @@
-import type { Content } from "./schema.js";
+import type { UseCase } from "./useCaseSchema.js";
 
-const REQUIRED_NON_EMPTY: (keyof Content)[] = [
+const REQUIRED_NON_EMPTY: (keyof UseCase)[] = [
   "title",
   "executiveSummary",
-  "keyPoints",
-  "mainContentSections",
+  "goals",
+  "challenges",
+  "solutions",
+  "results",
+  "narrativeSections",
 ];
 
-const OPTIONAL_TRACKED: (keyof Content)[] = [
-  "authorOrSource",
-  "audience",
-  "background",
-  "recommendations",
-  "nextSteps",
-  "supportingEvidence",
+const OPTIONAL_TRACKED: (keyof UseCase)[] = [
+  "subtitle",
+  "solutionName",
+  "industry",
+  "useCaseFocus",
+  "pullQuotes",
   "callToAction",
 ];
 
@@ -24,7 +26,7 @@ function isEmpty(value: unknown): boolean {
   return false;
 }
 
-export function normalizeContent(content: Content): Content {
+export function normalizeUseCase(content: UseCase): UseCase {
   const missing = new Set<string>(content.missingFields ?? []);
 
   for (const field of [...REQUIRED_NON_EMPTY, ...OPTIONAL_TRACKED]) {
@@ -36,5 +38,6 @@ export function normalizeContent(content: Content): Content {
   return {
     ...content,
     missingFields: Array.from(missing).sort(),
+    expansionNotes: content.expansionNotes ?? [],
   };
 }

@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { config } from "../config.js";
-import { ContentSchema, type Content } from "../shared/schema.js";
-import { CONTENT_JSON_SCHEMA, EXTRACTION_SYSTEM_PROMPT } from "./prompt.js";
+import { UseCaseSchema, type UseCase } from "../shared/useCaseSchema.js";
+import { USE_CASE_JSON_SCHEMA, buildExtractionSystemPrompt } from "./prompt.js";
 import { LLMProviderError, type LLMProvider } from "./provider.js";
 
 const TOOL_NAME = "submit_extraction";
@@ -9,12 +9,14 @@ const TOOL_NAME = "submit_extraction";
 export class ClaudeProvider implements LLMProvider {
   readonly name = "claude" as const;
   private client: Anthropic;
+  private systemPrompt: string;
 
   constructor() {
     this.client = new Anthropic({ apiKey: config.ANTHROPIC_API_KEY! });
+    this.systemPrompt = buildExtractionSystemPrompt(config.EXPANSION_MODE);
   }
 
-  async extract(rawContent: string): Promise<Content> {
+  async extract(rawContent: string): Promise<UseCase> {
     let response;
     try {
       response = await this.client.messages.create({
@@ -23,22 +25,22 @@ export class ClaudeProvider implements LLMProvider {
         system: [
           {
             type: "text",
-            text: EXTRACTION_SYSTEM_PROMPT,
+            text: this.systemPrompt,
             cache_control: { type: "ephemeral" },
           },
         ] as any,
         tools: [
           {
             name: TOOL_NAME,
-            description: "Submit the extracted structured content.",
-            input_schema: CONTENT_JSON_SCHEMA as any,
+            description: "Submit the extracted structured use case.",
+            input_schema: USE_CASE_JSON_SCHEMA as any,
           },
         ],
         tool_choice: { type: "tool", name: TOOL_NAME },
         messages: [
           {
             role: "user",
-            content: `Extract the structured content from the text below.\n\n<raw_content>\n${rawContent}\n</raw_content>`,
+            content: `Extract the structured use case from the text below.\n\n<raw_content>\n${rawContent}\n</raw_content>`,
           },
         ],
       });
@@ -51,7 +53,7 @@ export class ClaudeProvider implements LLMProvider {
       throw new LLMProviderError("claude", "invalid_output", "Claude did not return a tool_use block");
     }
 
-    const parsed = ContentSchema.safeParse(toolUse.input);
+    const parsed = UseCaseSchema.safeParse(toolUse.input);
     if (!parsed.success) {
       throw new LLMProviderError(
         "claude",

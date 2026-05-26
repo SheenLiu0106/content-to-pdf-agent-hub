@@ -3,6 +3,7 @@ dist/
 build/
 .env
 .env.local
+.env.save
 .DS_Store
 *.log
 npm-debug.log*
@@ -10,3 +11,7 @@ npm-debug.log*
 playwright-report/
 .playwright/
 coverage/
+*.tsbuildinfo
+
+.env.*.local
+*.pdf
