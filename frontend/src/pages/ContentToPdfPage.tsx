@@ -31,6 +31,7 @@ const DEFAULT_CONFIG: PdfRenderConfig = {
   supportingImageDataUrl: null,
   supportingImageCaption: null,
   mermaidVerified: false,
+  pdfLengthMode: "compact-2-page",
 };
 
 function deriveSteps(phase: Phase, hasContent: boolean): {

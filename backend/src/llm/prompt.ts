@@ -20,8 +20,8 @@ You must:
 2. Improve clarity, grammar, and business tone.
 3. Expand short content only when expansion is grounded in the source or general industry context (see the expansion rules below).
 4. Never invent customer names, metrics, percentages, financial impact, quotes, attribution, deployment scale, dates, or unsupported technical claims. Do NOT infer or invent a client name or client website — those fields no longer exist in the schema.
-5. Extract four summary lists from the source: goals, challenges, solutions, results — ideally 2 to 5 short bullets each. If the source has no metrics, keep results qualitative; do not fabricate numbers.
-6. Generate detailed narrative sections suitable for pages 2 and 3 of the PDF (2 to 6 sections, each with a heading and a 1–3 paragraph body).
+5. Extract four summary lists from the source: goals, challenges, solutions, results — short, concise business-language bullets. Hard caps below. If the source has no metrics, keep results qualitative; do not fabricate numbers.
+6. Generate narrative sections for page 2 of the PDF (up to 3 sections, each with a heading and a tight 1–2 paragraph body — see length caps below).
 7. Generate a simple Mermaid diagram representing the use case workflow, architecture, decision process, data flow, or impact pathway. Follow the Mermaid rules below.
 8. Populate \`missingFields\` with the exact schema field names for any information absent or unsupported by the source (e.g. "solutionName", "callToAction").
 9. Populate \`expansionNotes\` with short notes describing where you expanded or inferred (e.g. "Added industry context for predictive maintenance."). If no expansion happened, return an empty array.
@@ -53,15 +53,27 @@ Mermaid diagram rules:
 - If you cannot confidently produce a diagram from the source, set \`mermaidDiagram\` to null.
 - The diagram title should be one of: "Solution Flow", "Operational Impact Pathway", or "Use Case Architecture" — pick whichever best matches the diagram you generated.
 
-Length guidance:
+Length guidance (PDF layout is sensitive to overruns — keep within these caps):
 
-- title: short, descriptive (<120 characters).
-- subtitle: a single short phrase, or null.
-- executiveSummary: 2–4 sentences in business tone.
-- goals / challenges / solutions / results: 2–5 short bullets each.
-- narrativeSections: 2–6 sections, heading + 1–3 paragraph body each.
-- pullQuotes: 0–3 items. Quote attribution is null if the source does not name the speaker.
-- callToAction: a single sentence if present in the source, else null.
+- title: prefer ≤85 characters, hard max 120. Should fit on at most two lines in the PDF.
+- subtitle: a single short phrase, prefer ≤110 characters, or null.
+- solutionName: ≤45 characters. industry: ≤30 characters. useCaseFocus: ≤45 characters. Shorten rather than letting metadata wrap.
+- goals: max 2 bullets, each ≤95 characters.
+- challenges: max 2 bullets, each ≤95 characters.
+- solutions: max 3 bullets, each ≤95 characters.
+- results: max 3 bullets, each ≤95 characters.
+- Bullets must use concise business language. Avoid long dependent clauses, parentheticals, or lists-inside-bullets.
+- executiveSummary: 2–4 sentences, target 80–110 words, never more than 110.
+- narrativeSections: prefer 2–3 sections. Each section's body 70–110 words, never more than 110. Combined body across all sections target 260–360 words. End every section on a complete sentence with a terminal period.
+- mermaidDiagram.description: 1–2 short sentences, target ≤40 words, or null if no description is needed.
+- pullQuotes: 0–3 items. Quote attribution is null if the source does not name the speaker. Omit entirely if the source contains no quotable testimonial.
+- callToAction: a single short sentence if present in the source, else null.
+- Never end any text on a transition word (Ultimately, Therefore, However, Moreover, Furthermore, Additionally, Consequently). End on a complete clause with a terminal period.
+
+Bullet style example (use this density):
+
+- Verbose (avoid): "Enabled comprehensive operational visibility across long distances, including control rooms, administrative buildings, and berths."
+- Concise (target): "Enabled sitewide operations visibility across control rooms, offices, and berths."
 
 Return ONLY the structured data — no commentary, no markdown wrapping, no explanation outside the structured response.`;
 }

@@ -9,8 +9,10 @@
   <body>
     <main class="doc">
       <!-- Page 1: Cover + Summary. No content header — the hero is flush at
-           the top of the page and must not be overlaid. -->
-      <section class="cover">
+           the top of the page and must not be overlaid. The cover class is
+           "cover" or "cover compact" — compact is auto-applied when the
+           title/subtitle/summary bullets would otherwise risk overflow. -->
+      <section class="{{coverClass}}">
         <div class="hero">
           {{heroBlock}}
           <div class="hero-overlay">
@@ -48,6 +50,7 @@
           {{narrativeBlock}}
           {{pullQuoteBlock}}
           {{ctaBlock}}
+          {{inlineVisualBlock}}
           {{narrativeCopyrightBlock}}
         </div>
       </section>

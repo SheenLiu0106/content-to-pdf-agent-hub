@@ -126,6 +126,10 @@ export const PdfRenderConfigSchema = z.object({
     .default(null),
   supportingImageCaption: z.string().nullable().default(null),
   mermaidVerified: z.boolean().default(false),
+
+  pdfLengthMode: z
+    .enum(["compact-2-page", "standard"])
+    .default("compact-2-page"),
 });
 export type PdfRenderConfig = z.infer<typeof PdfRenderConfigSchema>;
 

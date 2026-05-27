@@ -30,6 +30,80 @@ body {
 .cover {
   page-break-after: always;
   break-after: page;
+  overflow: hidden;
+}
+
+/* Compact-cover variant — auto-applied when title/subtitle/summary bullets
+   would otherwise risk overflow. Shrinks hero, title, subtitle, and summary
+   bullet density just enough to keep page 1 intact. */
+.cover.compact .hero {
+  height: 2.15in;
+}
+.cover.compact .cover-body {
+  padding: 0.22in 0.6in 0.4in;
+}
+.cover.compact .cover-body .title {
+  font-size: 20pt;
+  line-height: 1.05;
+}
+.cover.compact .cover-body .subtitle {
+  font-size: 10.5pt;
+  line-height: 1.25;
+}
+.cover.compact .meta-row {
+  font-size: 8.5pt;
+  margin: 4px 0 10px;
+  padding-bottom: 6px;
+}
+.cover.compact .summary-grid {
+  column-gap: 0.22in;
+  row-gap: 0.12in;
+}
+.cover.compact .summary-section li {
+  font-size: 9.2pt;
+  line-height: 1.28;
+}
+
+/* Spacious-cover variant — auto-applied when title, subtitle, and summary
+   bullets are all light. Increases hero presence and vertical rhythm so
+   page 1 doesn't end with a large blank area under the summary grid. No
+   filler text — just density tuned for short content. */
+.cover.spacious .hero {
+  height: 3.8in;
+}
+.cover.spacious .cover-body {
+  padding: 0.48in 0.6in 0.55in;
+}
+.cover.spacious .cover-body .title {
+  font-size: 26pt;
+  line-height: 1.12;
+  margin: 0 0 10px;
+}
+.cover.spacious .cover-body .subtitle {
+  font-size: 13pt;
+  line-height: 1.4;
+  margin: 0 0 14px;
+}
+.cover.spacious .meta-row {
+  font-size: 9.5pt;
+  margin: 10px 0 20px;
+  padding-bottom: 14px;
+}
+.cover.spacious .summary-grid {
+  column-gap: 0.42in;
+  row-gap: 0.32in;
+  margin-top: 14px;
+}
+.cover.spacious .summary-section {
+  padding: 0.16in 0 0.08in;
+}
+.cover.spacious .summary-section h3 {
+  margin-bottom: 9px;
+}
+.cover.spacious .summary-section li {
+  font-size: 10.5pt;
+  line-height: 1.55;
+  margin-bottom: 6px;
 }
 
 /* Hero — flush at top of page 1, logo overlayed in upper-left. */

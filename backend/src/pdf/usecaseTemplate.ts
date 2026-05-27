@@ -84,12 +84,86 @@ function buildMetaRow(content: UseCase): string {
   return `<div class="meta-row">${parts.join("")}</div>`;
 }
 
-const SUMMARY_BULLETS_PAGE_1 = 3;
-
 function buildSummaryCard(label: string, items: string[], cardClass: string): string {
   if (!nonEmpty(items)) return "";
-  const trimmed = items.slice(0, SUMMARY_BULLETS_PAGE_1);
-  return `<div class="summary-section ${cardClass}"><h3>${escapeHtml(label)}</h3>${bullets(trimmed)}</div>`;
+  return `<div class="summary-section ${cardClass}"><h3>${escapeHtml(label)}</h3>${bullets(items)}</div>`;
+}
+
+type CoverDensity = "compact" | "normal" | "spacious";
+
+// Pick a cover density based on how much content needs to fit on page 1.
+// Compact protects against overflow when title/subtitle/bullets are long.
+// Spacious fills page 1 visually when every signal is light — short title,
+// short or empty subtitle, few short bullets — so the page doesn't end with
+// a large blank area below the summary grid. Normal is the baseline.
+function computeCoverDensity(content: UseCase): CoverDensity {
+  const titleLen = (content.title ?? "").length;
+  const subtitleLen = (content.subtitle ?? "").length;
+  const bullets = [
+    ...content.goals,
+    ...content.challenges,
+    ...content.solutions,
+    ...content.results,
+  ];
+  const bulletChars = bullets.reduce((acc, b) => acc + b.length, 0);
+  const bulletCount = bullets.length;
+
+  if (titleLen > 80 || subtitleLen > 110 || bulletChars > 850) return "compact";
+
+  const lightTitle = titleLen <= 55;
+  const lightSubtitle = subtitleLen === 0 || subtitleLen <= 70;
+  const lightBullets = bulletChars <= 380 && bulletCount <= 8;
+  if (lightTitle && lightSubtitle && lightBullets) return "spacious";
+
+  return "normal";
+}
+
+type SupportingVisualPlacement = "omit" | "inline-page-2" | "dedicated-page-3";
+
+// Decide whether the supporting visual is omitted, rendered inline at the
+// end of page 2's narrative body, or promoted to its own dedicated page 3.
+// We do not call into Playwright for layout info — Playwright doesn't expose
+// post-layout box metrics without a second render pass. Instead we use a
+// content-volume heuristic, calibrated against the Letter-page narrative
+// density of templates/usecase. Thresholds are tunable.
+function decideVisualPlacement(
+  content: UseCase,
+  supporting: SupportingVisualResolved,
+  mode: "compact-2-page" | "standard",
+  density: CoverDensity
+): SupportingVisualPlacement {
+  const hasVisual = !!(
+    supporting.imageDataUrl || (supporting.mermaidSvg && content.mermaidDiagram)
+  );
+  if (!hasVisual) return "omit";
+
+  const execLen = content.executiveSummary.length;
+  const narrativeLen = content.narrativeSections.reduce(
+    (acc, s) => acc + s.body.length + s.heading.length,
+    0
+  );
+  const pullLen = content.pullQuotes.reduce((acc, p) => acc + p.quote.length, 0);
+  const ctaLen = content.callToAction?.length ?? 0;
+  const page2Score = execLen + narrativeLen + pullLen + ctaLen;
+
+  const visualWeight =
+    (supporting.imageDataUrl ? 1200 : 0) +
+    (supporting.mermaidSvg ? 900 : 0) +
+    (content.mermaidDiagram?.description?.length ?? 0);
+
+  // If page 2 has room and the combined footprint fits, inline the visual.
+  if (page2Score < 900 && page2Score + visualWeight < 1700) return "inline-page-2";
+
+  // Sparse-page-3 guard: in compact-2-page mode or whenever the cover is
+  // spacious (light content overall), drop a weak visual rather than ship a
+  // near-empty page. Standard mode with non-spacious cover is more willing
+  // to keep the visual on its own page.
+  const sparseGuard = mode === "compact-2-page" || density === "spacious";
+  if (sparseGuard && visualWeight < 600 && page2Score < 1200) {
+    return "omit";
+  }
+
+  return "dedicated-page-3";
 }
 
 function normalizeWebsite(value: string | null | undefined): string {
@@ -237,15 +311,20 @@ export function renderUseCaseTemplate(
   const { html, styles, placeholderHeroDataUri } = loadBundle();
 
   const contentHeader = buildContentPageHeader(content, config);
-  const supportingVisualHtml = buildSupportingVisualBlock(content, supporting);
-  const hasSupportingVisualPage = supportingVisualHtml.length > 0;
+  const density = computeCoverDensity(content);
+  const placement = decideVisualPlacement(content, supporting, config.pdfLengthMode, density);
+  const supportingVisualHtml =
+    placement === "omit" ? "" : buildSupportingVisualBlock(content, supporting);
   const copyrightBlock = buildCopyrightBlock(config);
 
   // Copyright appears once, after the final block of meaningful content.
-  // If a supporting-visual page exists, the copyright sits at the end of
-  // that page; otherwise it closes the narrative page.
-  const narrativeCopyrightBlock = hasSupportingVisualPage ? "" : copyrightBlock;
-  const supportingVisualPageBlock = hasSupportingVisualPage
+  // If the visual is promoted to its own page 3, copyright sits at the end
+  // of that page; otherwise it closes page 2 (whether the visual is inline
+  // on page 2 or omitted entirely).
+  const dedicatedPage = placement === "dedicated-page-3";
+  const inlineVisualBlock = placement === "inline-page-2" ? supportingVisualHtml : "";
+  const narrativeCopyrightBlock = dedicatedPage ? "" : copyrightBlock;
+  const supportingVisualPageBlock = dedicatedPage
     ? `<section class="content-page supporting-visual-page">` +
       contentHeader +
       `<div class="content-page-body">` +
@@ -254,10 +333,14 @@ export function renderUseCaseTemplate(
       `</div></section>`
     : "";
 
+  const coverClass = `cover ${density}`;
+
   const replacements: Record<string, string> = {
     styles,
     primaryColor: config.primaryColor,
     accentColor: config.accentColor,
+
+    coverClass,
 
     title: escapeHtml(content.title || "Untitled use case"),
     subtitleBlock: buildSubtitleBlock(content.subtitle),
@@ -281,6 +364,7 @@ export function renderUseCaseTemplate(
     narrativeBlock: buildNarrativeBlock(content),
     pullQuoteBlock: buildPullQuoteBlock(content),
     ctaBlock: buildCtaBlock(content.callToAction),
+    inlineVisualBlock,
     narrativeCopyrightBlock,
 
     supportingVisualPageBlock,
