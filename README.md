@@ -1,8 +1,18 @@
-# SHEEN — Content to PDF
+# SHEEN｜Content to PDF Agent Hub
 
-Paste raw content → AI extracts a structured **customer case study** → edit anything → upload a hero image → download a branded PDF with summary sections, narrative, and an auto-generated Mermaid diagram.
+An AI-powered content-to-PDF agent hub for turning pasted content into branded, ready-to-share PDFs.
 
-The user does four things: **paste** their source content, **review and edit** the AI's extraction, set **brand** assets (logo, hero image, colors), and **generate** the PDF. The AI extracts Goals / Challenges / Solutions / Results, polishes the narrative, and generates a small Mermaid flowchart. Playwright renders the result through a fixed `usecase` HTML/CSS template. Missing or weak fields are flagged in the preview but never block PDF generation.
+The current MVP includes a **Customer Case Study / Success Story** template. Users paste raw content, let AI extract and structure it, edit the generated content, configure brand assets, optionally add a supporting visual, and export a polished PDF.
+
+The workflow is **Paste → Extract → Edit → Brand → Generate**:
+
+1. **Paste** — the user pastes source content (paste-only; file upload is not supported).
+2. **Extract** — the AI extracts structured content (title, summary, Goals / Challenges / Solutions / Results, narrative, pull quotes, optional Mermaid diagram).
+3. **Edit** — the user can edit every field before export.
+4. **Brand** — the user configures brand name, website, document label, colors, and uploads/pastes a logo and hero image. A supporting visual is optional.
+5. **Generate** — the app renders a branded PDF via Playwright.
+
+Image assets are supported (logo upload/paste, hero image upload/paste, optional supporting image upload/paste, Mermaid diagram test/preview). Only the **source content** is paste-only.
 
 ## Stack
 
@@ -16,6 +26,8 @@ The user does four things: **paste** their source content, **review and edit** t
 ## Supported content types
 
 `use_case`, `success_story`, `case_study`, `project_summary`, `marketing_brief`, `executive_memo`, `general_article`.
+
+The AI tags the extracted content with one of these types, but all content is rendered through the same Customer Case Study template in the MVP.
 
 ## Quick start
 
@@ -67,7 +79,7 @@ Set in `backend/.env`. Only the credentials for the selected `LLM_PROVIDER` are 
 
 The backend fails fast at boot if `LLM_PROVIDER` is set without the matching key.
 
-Branding (brand name, website, document label, colors, logo, hero image) is configured **from the frontend settings panel**, not env. No API keys live in this repo.
+Branding (brand name, website, document label, colors, logo, hero image, supporting visual) is configured **from the frontend settings panel**, not env. No API keys live in this repo.
 
 ## How it works
 
@@ -101,7 +113,9 @@ Request:
 { "rawContent": "...paste contents..." }
 ```
 
-Response: a normalized `UseCase` object (see [backend/src/shared/useCaseSchema.ts](backend/src/shared/useCaseSchema.ts)) — title, subtitle, contentType, client meta, goals/challenges/solutions/results, executive summary, narrative sections, pull quotes, Mermaid diagram, call to action, missingFields, expansionNotes.
+Response: a normalized `UseCase` object (see [backend/src/shared/useCaseSchema.ts](backend/src/shared/useCaseSchema.ts)) containing:
+
+`title`, `subtitle`, `contentType`, `solutionName`, `industry`, `useCaseFocus`, `goals`, `challenges`, `solutions`, `results`, `executiveSummary`, `narrativeSections`, `pullQuotes`, `mermaidDiagram` (optional), `callToAction`, `missingFields`, `expansionNotes`.
 
 Errors:
 
@@ -123,23 +137,60 @@ Request:
 }
 ```
 
-`PdfRenderConfig` fields:
+`PdfRenderConfig` fields (see [backend/src/shared/useCaseSchema.ts](backend/src/shared/useCaseSchema.ts) for the authoritative schema):
 
 | Field | Type | Default |
 |---|---|---|
 | `templateId` | `"usecase"` | `"usecase"` |
 | `brandName` | string | `"Your Company"` |
-| `brandWebsite` | string | `"https://example.com"` |
+| `brandWebsite` | string | `"www.example.com"` |
 | `documentLabel` | string | `"CUSTOMER CASE STUDY"` |
-| `brandCopyright` | string | `"© 2026 Sheen Liu. All rights reserved."` |
+| `brandCopyright` | string | `"© 2026 Your Company. All rights reserved."` |
 | `primaryColor` | `#RRGGBB` | `"#0F172A"` |
 | `accentColor` | `#RRGGBB` | `"#06B6D4"` |
-| `logoDataUrl` | `data:image/(png\|jpeg\|svg+xml);base64,…` or null | `null` |
-| `heroImageDataUrl` | `data:image/(png\|jpeg\|webp);base64,…` or null | `null` |
+| `logoDataUrl` | image data URL or null | `null` |
+| `heroImageDataUrl` | image data URL or null | `null` |
+| `supportingVisualEnabled` | boolean | `false` |
+| `supportingVisualType` | `"image"` \| `"mermaid"` \| null | `null` |
+| `supportingImageDataUrl` | image data URL or null | `null` |
+| `supportingImageCaption` | string or null | `null` |
+| `mermaidVerified` | boolean | `false` |
 
-Body limit is 8 MB to comfortably fit a downscaled hero image plus logo.
+Body limit is 8 MB to comfortably fit a downscaled hero image, logo, and optional supporting image.
 
-Response: `application/pdf` binary with `Content-Disposition: attachment; filename="use-case-{title-slug}.pdf"`.
+Website values are normalized to domain-only when rendered into the PDF:
+
+```
+https://www.bkoai.com/  →  www.bkoai.com
+http://bkoai.com        →  bkoai.com
+www.bkoai.com           →  www.bkoai.com
+```
+
+Generated PDFs display the website without `https://` (BKOAI shown only as an illustrative user-configured brand example).
+
+Response: `application/pdf` binary with `Content-Disposition: attachment; filename="success-story-{title-slug}.pdf"`.
+
+Example filename:
+
+```
+success-story-lng-commissioning-data-integrity-and-sis-alignment.pdf
+```
+
+### `POST /api/validate-mermaid`
+
+Used by the frontend to test/preview a Mermaid diagram before PDF generation.
+
+Request:
+
+```json
+{ "code": "flowchart LR\n  A --> B" }
+```
+
+Response:
+
+```json
+{ "ok": true, "svg": "<svg …>…</svg>" }
+```
 
 ### `GET /api/health`
 
@@ -147,32 +198,78 @@ Response: `application/pdf` binary with `Content-Disposition: attachment; filena
 { "status": "ok", "provider": "gemini" }
 ```
 
-## The `usecase` template
+## Templates
 
-Files live under [backend/src/templates/usecase/](backend/src/templates/usecase):
+The current MVP ships with one active template:
 
-- `template.html` — page 1 (brand header / hero / title / meta / Goals · Challenges · Solutions · Results) and pages 2–3 (executive summary, narrative sections, pull quotes, Mermaid diagram, CTA, footer).
+- `usecase` — internal template ID, displayed in the UI as **Customer Case Study**.
+
+Additional template cards may appear in the UI as **Coming Soon**, but only the Customer Case Study template is fully implemented. The product is not yet a multi-template system.
+
+Files for the active template live under [backend/src/templates/usecase/](backend/src/templates/usecase):
+
+- `template.html` — page 1 (brand header / hero / title / meta / Goals · Challenges · Solutions · Results) and later pages (executive summary, narrative sections, pull quotes, optional supporting visual, CTA, footer).
 - `styles.css` — print-tuned CSS using `var(--primary)` and `var(--accent)` (injected from `config`).
 - `placeholder-hero.svg` — used when the user does not upload a hero image.
 - `meta.json` — template descriptor.
 
 No build step is needed for template edits — the renderer reads templates from disk on startup (cached per process).
 
-## Mermaid diagram pipeline
+## Supporting visual (Mermaid or uploaded image)
 
-1. The AI generates a small Mermaid `flowchart LR` or `flowchart TD` (5–8 short-labeled nodes) as part of the extraction response.
-2. Before the main PDF render, [`backend/src/pdf/mermaid.ts`](backend/src/pdf/mermaid.ts) sanitizes the code (strips `click` directives, HTML, special characters; enforces the directive on line 1) and renders it to SVG inside a small Playwright sandbox page using the local Mermaid bundle from `node_modules`.
-3. The resulting SVG string is inlined into the main `template.html` before the final PDF render.
-4. If Mermaid rendering fails for any reason, the PDF still generates — the diagram section falls back to a styled box with title + description, never raw `flowchart …` code.
+The supporting visual is optional. Users can choose:
+
+- no supporting visual
+- an uploaded supporting image (with optional caption)
+- a Mermaid diagram
+
+Rules:
+
+- If an uploaded supporting image is provided, the PDF uses the uploaded image and does not use Mermaid.
+- If Mermaid is selected, the user can test and preview the diagram before PDF generation. Mermaid is included only if it renders successfully as a visual SVG.
+- If Mermaid fails to render, the supporting visual section is omitted completely.
+
+The PDF never shows:
+
+- raw Mermaid code
+- title-only diagram sections
+- description-only diagram sections
+- blank diagram placeholders
+- plain text pathways pretending to be diagrams
+
+The Mermaid pipeline lives in [backend/src/pdf/mermaid.ts](backend/src/pdf/mermaid.ts): it sanitizes the code (strips `click` directives, HTML, special characters; enforces a leading `flowchart` directive), renders it to SVG inside a small Playwright sandbox page using the local Mermaid bundle from `node_modules`, and inlines the resulting SVG into the main template before the final PDF render.
+
+## PDF output rules
+
+Generated PDFs should:
+
+- use the `success-story-` filename prefix
+- keep page 1 as the cover / summary page
+- show the hero image with logo and website overlay when provided
+- show Goals / Challenges / Solutions / Results on page 1
+- show narrative content on later pages
+- include a supporting visual only if there is a real uploaded image or a successfully rendered Mermaid SVG
+- show a small technical footer with filename and page number
+- show compact copyright once after all content
+- never create an extra blank page only for the footer, copyright, or failed diagram content
+
+### Copyright distinction
+
+There are two distinct copyright values:
+
+- **Product/web app footer** — uses `© 2026 Sheen Liu. All rights reserved.` This is product-level copyright shown in the SHEEN web app footer only.
+- **Generated PDFs** — use the user-configured `brandCopyright`. The default is `© 2026 Your Company. All rights reserved.`
+
+The product-level string is never written into generated PDFs.
 
 ## Out of scope
 
+- Authentication / multi-user accounts
+- Database-backed submission history
 - Reviewer email submission
-- Authentication / multi-user
-- Multiple templates / template picker UI
-- Submission history / re-download
-- File upload (PDF, DOCX) as source content — paste-only
-- Real AI image generation — the hero image is user-uploaded
+- File upload as source content — source content is paste-only (image assets such as logo, hero, and supporting image are uploadable/pasteable)
+- Additional fully-rendered templates beyond the default Customer Case Study template
+- Real AI image generation — hero and supporting images are user-uploaded or pasted
 
 These are intentional. Add them when the core flow is proven.
 
