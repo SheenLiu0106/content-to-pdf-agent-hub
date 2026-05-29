@@ -74,7 +74,7 @@ Set in `backend/.env`. Only the credentials for the selected `LLM_PROVIDER` are 
 | `ANTHROPIC_MODEL` | `claude-sonnet-4-6` | Any messages-API capable model |
 | `OPENAI_API_KEY` | — | Required when `LLM_PROVIDER=openai` |
 | `OPENAI_MODEL` | `gpt-4o` | Must support JSON-schema response format |
-| `PORT` | `8787` | Fastify port |
+| `PORT` | `8787` | Fastify port (local dev uses `8788` to avoid a conflict; Vite proxy targets the same) |
 | `CORS_ORIGIN` | `http://localhost:5173` | Vite dev origin |
 
 The backend fails fast at boot if `LLM_PROVIDER` is set without the matching key.
