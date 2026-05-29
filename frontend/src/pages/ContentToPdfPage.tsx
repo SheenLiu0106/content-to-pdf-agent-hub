@@ -1,5 +1,14 @@
 import { useMemo, useState } from "react";
-import type { UseCase, PdfRenderConfig } from "@shared/useCaseSchema";
+import type {
+  InlineVisualBlock,
+  PdfRenderConfig,
+  UseCase,
+} from "@shared/useCaseSchema";
+import type {
+  DocumentStrategy,
+  IntakeAssessment,
+  LayoutPlan,
+} from "@shared/agentTypes";
 import PasteArea from "../components/PasteArea";
 import EditableUseCasePreview from "../components/EditableUseCasePreview";
 import BrandSettingsPanel from "../components/BrandSettingsPanel";
@@ -12,7 +21,15 @@ import ErrorBanner from "../components/ErrorBanner";
 import Toast from "../components/Toast";
 import StepBar, { type StepId } from "../components/StepBar";
 import TemplateGallery from "../components/TemplateGallery";
+import AgentDecisionBadges from "../components/AgentDecisionBadges";
+import AgentWarningsPanel from "../components/AgentWarningsPanel";
+import { hasUnresolvedSlots } from "../lib/inlineVisuals";
 import * as api from "../lib/api";
+import {
+  getTemplateDefinition,
+  type TemplateDefinition,
+  type TemplateId,
+} from "../lib/templates";
 
 type Phase = "idle" | "extracting" | "preview" | "rendering" | "done";
 
@@ -80,8 +97,42 @@ export default function ContentToPdfPage() {
   const [error, setError] = useState<string | null>(null);
   const [config, setConfig] = useState<PdfRenderConfig>(DEFAULT_CONFIG);
   const [toast, setToast] = useState<{ title: string; description?: string } | null>(null);
+  const [intake, setIntake] = useState<IntakeAssessment | null>(null);
+  const [strategy, setStrategy] = useState<DocumentStrategy | null>(null);
+  const [layoutPlan, setLayoutPlan] = useState<LayoutPlan | null>(null);
+  const [warnings, setWarnings] = useState<string[]>([]);
+  const [repairAttempts, setRepairAttempts] = useState(0);
+  const [repairActions, setRepairActions] = useState<string[]>([]);
+  const [recommendedTemplate, setRecommendedTemplate] =
+    useState<TemplateDefinition | null>(null);
+  const [userSelectedTemplate, setUserSelectedTemplate] =
+    useState<TemplateId | null>(null);
+  const [pendingInlineVisuals, setPendingInlineVisuals] = useState<
+    InlineVisualBlock[]
+  >([]);
+
+  // Template decision chain: the agent recommends a template, the user may
+  // override it. `config.templateId` is the effective template (userSelected ??
+  // agentRecommended) and stays the single source of truth for the preview/PDF.
+  const agentRecommendedTemplateId: TemplateId | null =
+    recommendedTemplate?.id ?? strategy?.templateId ?? null;
+  const effectiveTemplateId = config.templateId;
+  const isTemplateOverride =
+    userSelectedTemplate != null &&
+    agentRecommendedTemplateId != null &&
+    userSelectedTemplate !== agentRecommendedTemplateId;
 
   const steps = useMemo(() => deriveSteps(phase, content !== null), [phase, content]);
+
+  const substages = useMemo<string[] | undefined>(() => {
+    if (phase === "extracting") {
+      return ["Analyzing", "Planning", "Extracting", "Editing"];
+    }
+    if (phase === "rendering") {
+      return ["Rendering", "Reviewing", "Repairing"];
+    }
+    return undefined;
+  }, [phase]);
 
   const supportingVisual = (
     <SupportingVisualSection
@@ -99,7 +150,32 @@ export default function ContentToPdfPage() {
     setPhase("extracting");
     try {
       const result = await api.extract(raw);
-      setContent(result);
+      const mergedContent: UseCase = {
+        ...result.content,
+        inlineVisuals: [
+          ...(result.content.inlineVisuals ?? []),
+          ...pendingInlineVisuals,
+        ],
+      };
+      setContent(mergedContent);
+      setPendingInlineVisuals([]);
+      setIntake(result.intake);
+      setStrategy(result.strategy);
+      setLayoutPlan(result.layoutPlan);
+      setWarnings(result.warnings);
+      setRepairAttempts(0);
+      setRepairActions([]);
+      setRecommendedTemplate(result.recommendedTemplate);
+      // Auto-apply the agent's recommendation only if the user hasn't
+      // already overridden the template choice this session. Manual picks
+      // stick across re-extracts so the user doesn't lose their selection.
+      if (!userSelectedTemplate) {
+        setConfig((c) => ({
+          ...c,
+          templateId: result.recommendedTemplate.id,
+          documentLabel: result.recommendedTemplate.documentLabel,
+        }));
+      }
       setPhase("preview");
     } catch (err) {
       const e = err as api.ApiError;
@@ -108,12 +184,25 @@ export default function ContentToPdfPage() {
     }
   }
 
+  function handleTemplateChange(id: TemplateId) {
+    const def = getTemplateDefinition(id);
+    setUserSelectedTemplate(id);
+    setConfig((c) => ({
+      ...c,
+      templateId: id,
+      documentLabel: def.documentLabel,
+    }));
+  }
+
   async function handleGenerate() {
     if (!content) return;
     setError(null);
     setPhase("rendering");
     try {
-      const { blob, filename } = await api.renderPdf(content, config);
+      const { blob, filename, repairAttempts, repairActions } = await api.renderPdf(
+        content,
+        config
+      );
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -122,10 +211,12 @@ export default function ContentToPdfPage() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+      setRepairAttempts(repairAttempts);
+      setRepairActions(repairActions);
       setPhase("done");
       setToast({
         title: "PDF generated successfully.",
-        description: "Your customer case study PDF has been downloaded.",
+        description: "Your PDF has been downloaded.",
       });
     } catch (err) {
       const e = err as api.ApiError;
@@ -139,6 +230,15 @@ export default function ContentToPdfPage() {
     setError(null);
     setRaw("");
     setPhase("idle");
+    setIntake(null);
+    setStrategy(null);
+    setLayoutPlan(null);
+    setWarnings([]);
+    setRepairAttempts(0);
+    setRepairActions([]);
+    setRecommendedTemplate(null);
+    setUserSelectedTemplate(null);
+    setPendingInlineVisuals([]);
   }
 
   return (
@@ -154,7 +254,11 @@ export default function ContentToPdfPage() {
             </p>
           </div>
           <div className="mt-4">
-            <StepBar current={steps.current} completed={steps.completed} />
+            <StepBar
+              current={steps.current}
+              completed={steps.completed}
+              substages={substages}
+            />
           </div>
         </div>
       </header>
@@ -191,6 +295,10 @@ export default function ContentToPdfPage() {
                     onChange={setRaw}
                     onExtract={handleExtract}
                     loading={phase === "extracting"}
+                    pastedImageCount={pendingInlineVisuals.length}
+                    onInlineImagesPasted={(visuals) =>
+                      setPendingInlineVisuals((prev) => [...prev, ...visuals])
+                    }
                   />
                 </section>
 
@@ -252,7 +360,24 @@ export default function ContentToPdfPage() {
                   </button>
                 </section>
 
-                <EditableUseCasePreview content={content} onChange={setContent} />
+                {intake && strategy && layoutPlan && (
+                  <AgentDecisionBadges
+                    intake={intake}
+                    strategy={strategy}
+                    layoutPlan={layoutPlan}
+                    warnings={warnings}
+                    effectiveTemplateId={effectiveTemplateId}
+                    agentRecommendedTemplateId={agentRecommendedTemplateId}
+                    isOverride={isTemplateOverride}
+                  />
+                )}
+
+                <EditableUseCasePreview
+                  content={content}
+                  onChange={setContent}
+                  documentLabel={config.documentLabel}
+                  templateId={config.templateId}
+                />
 
                 {supportingVisual}
 
@@ -267,7 +392,11 @@ export default function ContentToPdfPage() {
 
           {/* ============================ Right settings panel =========================== */}
           <aside className="flex flex-col gap-4 lg:sticky lg:top-4 lg:self-start">
-            <TemplateGallery activeId={config.templateId} />
+            <TemplateGallery
+              selectedId={config.templateId}
+              recommendedId={recommendedTemplate?.id ?? null}
+              onSelect={handleTemplateChange}
+            />
 
             <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm ring-1 ring-slate-100/60">
               <h3 className="text-sm font-semibold text-slate-900">Brand</h3>
@@ -290,10 +419,28 @@ export default function ContentToPdfPage() {
               </div>
             </section>
 
+            <AgentWarningsPanel
+              warnings={[]}
+              repairAttempts={repairAttempts}
+              repairActions={repairActions}
+              inlineVisualSlots={
+                config.templateId === "article_report" &&
+                hasUnresolvedSlots(content?.inlineVisuals)
+                  ? (content?.inlineVisuals ?? []).filter(
+                      (v) =>
+                        v.kind === "image_slot" &&
+                        (v.status === "needs_upload" ||
+                          v.status === "recommended")
+                    ).length
+                  : 0
+              }
+            />
+
             <ExportSummaryPanel
               hasContent={content !== null}
               rendering={phase === "rendering"}
               onGenerate={handleGenerate}
+              templateLabel={getTemplateDefinition(config.templateId).label}
             />
           </aside>
         </div>

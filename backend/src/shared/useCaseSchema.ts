@@ -1,13 +1,22 @@
 import { z } from "zod";
 
 export const USE_CASE_CONTENT_TYPES = [
+  // Case-study family — concrete customer/project implementations
   "use_case",
   "success_story",
   "case_study",
   "project_summary",
   "marketing_brief",
-  "executive_memo",
+  // Article family — conceptual, explanatory, analytical, thought leadership
+  "article",
   "general_article",
+  "thought_leadership",
+  "newsletter",
+  // Memo family — decisions, recommendations, internal updates
+  "executive_memo",
+  "memo",
+  "decision_brief",
+  "meeting_summary",
 ] as const;
 
 export const UseCaseContentTypeEnum = z.enum(USE_CASE_CONTENT_TYPES);
@@ -19,8 +28,14 @@ export const USE_CASE_CONTENT_TYPE_LABELS: Record<UseCaseContentType, string> = 
   case_study: "Case Study",
   project_summary: "Project Summary",
   marketing_brief: "Marketing Brief",
-  executive_memo: "Executive Memo",
+  article: "Article",
   general_article: "General Article",
+  thought_leadership: "Thought Leadership",
+  newsletter: "Newsletter",
+  executive_memo: "Executive Memo",
+  memo: "Memo",
+  decision_brief: "Decision Brief",
+  meeting_summary: "Meeting Summary",
 };
 
 export const NarrativeSectionSchema = z.object({
@@ -41,6 +56,41 @@ export const MermaidDiagramSchema = z.object({
   description: z.string().nullable(),
 });
 export type MermaidDiagram = z.infer<typeof MermaidDiagramSchema>;
+
+export const INLINE_VISUAL_KINDS = ["image", "image_slot"] as const;
+export const INLINE_VISUAL_SOURCE_TYPES = [
+  "uploaded",
+  "pasted",
+  "url",
+  "missing",
+] as const;
+export const INLINE_VISUAL_PLACEMENTS = [
+  "after_section_heading",
+  "after_first_paragraph",
+  "between_paragraphs",
+  "after_section",
+  "manual",
+] as const;
+export const INLINE_VISUAL_STATUSES = [
+  "ready",
+  "needs_upload",
+  "recommended",
+  "failed",
+] as const;
+
+export const InlineVisualBlockSchema = z.object({
+  id: z.string(),
+  kind: z.enum(INLINE_VISUAL_KINDS),
+  sourceType: z.enum(INLINE_VISUAL_SOURCE_TYPES),
+  src: z.string().optional(),
+  dataUrl: z.string().optional(),
+  caption: z.string().optional(),
+  altText: z.string().optional(),
+  sectionIndex: z.number().int().min(0).optional(),
+  placement: z.enum(INLINE_VISUAL_PLACEMENTS).default("after_section"),
+  status: z.enum(INLINE_VISUAL_STATUSES).default("ready"),
+});
+export type InlineVisualBlock = z.infer<typeof InlineVisualBlockSchema>;
 
 export const UseCaseSchema = z.object({
   title: z.string(),
@@ -67,6 +117,8 @@ export const UseCaseSchema = z.object({
 
   callToAction: z.string().nullable(),
 
+  inlineVisuals: z.array(InlineVisualBlockSchema).default([]),
+
   missingFields: z.array(z.string()),
   expansionNotes: z.array(z.string()),
 });
@@ -84,7 +136,9 @@ export const SupportingVisualTypeEnum = z.enum(SUPPORTING_VISUAL_TYPES);
 export type SupportingVisualType = z.infer<typeof SupportingVisualTypeEnum>;
 
 export const PdfRenderConfigSchema = z.object({
-  templateId: z.literal("usecase").default("usecase"),
+  templateId: z
+    .enum(["usecase", "article_report", "executive_memo"])
+    .default("usecase"),
 
   brandName: z.string().default("Your Company"),
   brandWebsite: z.string().default("www.example.com"),

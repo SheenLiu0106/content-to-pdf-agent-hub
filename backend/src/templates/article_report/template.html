@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>{{title}}</title>
+    <style>{{styles}}</style>
+    <style>:root { --primary: {{primaryColor}}; --accent: {{accentColor}}; }</style>
+  </head>
+  <body>
+    <main class="doc">
+      <!-- Page 1: Article cover. Hero is flush at the top (no overlay). The
+           ARTICLE REPORT label, title, deck, key takeaways card, and intro
+           paragraph sit below the hero. No 4-card summary grid — that's
+           case-study-only. -->
+      <section class="cover {{coverClass}}">
+        <div class="article-hero">
+          {{heroBlock}}
+        </div>
+
+        <div class="cover-body">
+          <div class="doc-label">{{documentLabel}}</div>
+          <div class="accent-rule"></div>
+          <h1 class="title">{{title}}</h1>
+          {{subtitleBlock}}
+
+          {{keyTakeawaysBlock}}
+          {{introBlock}}
+        </div>
+      </section>
+
+      <!-- Page 2+: Article body. Compact header at the top, article sections,
+           optional pull quote(s) inline, optional supporting visual inline,
+           closing copyright line. -->
+      <section class="content-page narrative-page">
+        {{contentHeader}}
+        <div class="content-page-body narrative">
+          {{articleSectionsBlock}}
+          {{pullQuoteBlock}}
+          {{inlineVisualBlock}}
+          {{narrativeCopyrightBlock}}
+        </div>
+      </section>
+
+      <!-- Optional dedicated visual page when the supporting visual is strong
+           enough to deserve its own page. Omitted when not needed. -->
+      {{supportingVisualPageBlock}}
+    </main>
+  </body>
+</html>

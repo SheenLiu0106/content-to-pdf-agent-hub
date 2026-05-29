@@ -1,5 +1,6 @@
 import { chromium, type Browser } from "playwright";
-import { renderUseCaseTemplate, buildFooterTemplate } from "./usecaseTemplate.js";
+import { buildFooterTemplate } from "./usecaseTemplate.js";
+import { renderTemplateHtml } from "./templateRegistry.js";
 import { renderMermaidToSvg } from "./mermaid.js";
 import type { UseCase, PdfRenderConfig } from "../shared/useCaseSchema.js";
 
@@ -94,7 +95,7 @@ export async function renderPdf(
   try {
     const supporting = await resolveSupportingVisual(content, config, browser);
 
-    const html = renderUseCaseTemplate(content, config, supporting);
+    const html = renderTemplateHtml(content, config, supporting);
 
     const context = await browser.newContext();
     const page = await context.newPage();

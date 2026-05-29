@@ -89,14 +89,14 @@ function buildSummaryCard(label: string, items: string[], cardClass: string): st
   return `<div class="summary-section ${cardClass}"><h3>${escapeHtml(label)}</h3>${bullets(items)}</div>`;
 }
 
-type CoverDensity = "compact" | "normal" | "spacious";
+export type CoverDensity = "compact" | "normal" | "spacious";
 
 // Pick a cover density based on how much content needs to fit on page 1.
 // Compact protects against overflow when title/subtitle/bullets are long.
 // Spacious fills page 1 visually when every signal is light — short title,
 // short or empty subtitle, few short bullets — so the page doesn't end with
 // a large blank area below the summary grid. Normal is the baseline.
-function computeCoverDensity(content: UseCase): CoverDensity {
+export function computeCoverDensity(content: UseCase): CoverDensity {
   const titleLen = (content.title ?? "").length;
   const subtitleLen = (content.subtitle ?? "").length;
   const bullets = [
@@ -118,7 +118,7 @@ function computeCoverDensity(content: UseCase): CoverDensity {
   return "normal";
 }
 
-type SupportingVisualPlacement = "omit" | "inline-page-2" | "dedicated-page-3";
+export type SupportingVisualPlacement = "omit" | "inline-page-2" | "dedicated-page-3";
 
 // Decide whether the supporting visual is omitted, rendered inline at the
 // end of page 2's narrative body, or promoted to its own dedicated page 3.
@@ -126,7 +126,7 @@ type SupportingVisualPlacement = "omit" | "inline-page-2" | "dedicated-page-3";
 // post-layout box metrics without a second render pass. Instead we use a
 // content-volume heuristic, calibrated against the Letter-page narrative
 // density of templates/usecase. Thresholds are tunable.
-function decideVisualPlacement(
+export function decideVisualPlacement(
   content: UseCase,
   supporting: SupportingVisualResolved,
   mode: "compact-2-page" | "standard",

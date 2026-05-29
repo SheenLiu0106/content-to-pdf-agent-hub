@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>{{title}}</title>
+    <style>{{styles}}</style>
+    <style>:root { --primary: {{primaryColor}}; --accent: {{accentColor}}; }</style>
+  </head>
+  <body>
+    <main class="doc">
+      <!-- Page 1: Memo masthead. No hero image — memos are text-forward.
+           Brand wordmark in the top-left, document label, title, exec summary,
+           recommendation, and key points. -->
+      <section class="memo-cover">
+        <header class="memo-masthead">
+          <div class="memo-brand">{{brandHeader}}</div>
+          <div class="memo-label">{{documentLabel}}</div>
+        </header>
+
+        <h1 class="title">{{title}}</h1>
+
+        {{execSummaryBlock}}
+        {{recommendationBlock}}
+        {{keyPointsBlock}}
+      </section>
+
+      <!-- Page 2+: Memo body. The running header lives in a <thead>, which
+           Chromium repeats at the top of every page the table flows onto —
+           so page 3 and any later continuation page carry the same header as
+           page 2. (An in-flow header block only renders once, which left
+           overflow pages headerless.) The cover above is outside the table,
+           so page 1 keeps its masthead and gets no running header. Sections
+           omit themselves when the source data has nothing to render. -->
+      <table class="content-page-table memo-body-page">
+        <thead class="content-page-running-header">
+          <tr><td>{{contentHeader}}</td></tr>
+        </thead>
+        <tbody>
+          <tr><td>
+            <div class="content-page-body memo-body">
+              {{backgroundBlock}}
+              {{analysisBlock}}
+              {{risksBlock}}
+              {{nextStepsBlock}}
+              {{inlineVisualBlock}}
+              {{narrativeCopyrightBlock}}
+            </div>
+          </td></tr>
+        </tbody>
+      </table>
+
+      <!-- Optional dedicated visual page when a supporting visual is strong
+           enough. Omitted in most memo flows. -->
+      {{supportingVisualPageBlock}}
+    </main>
+  </body>
+</html>

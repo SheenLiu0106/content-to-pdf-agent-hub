@@ -4,12 +4,14 @@ interface Props {
   hasContent: boolean;
   rendering: boolean;
   onGenerate: () => void;
+  templateLabel: string;
 }
 
 export default function ExportSummaryPanel({
   hasContent,
   rendering,
   onGenerate,
+  templateLabel,
 }: Props) {
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm ring-1 ring-slate-100/60">
@@ -19,6 +21,10 @@ export default function ExportSummaryPanel({
           PDF
         </span>
       </div>
+      <p className="mt-2 text-[11px] text-slate-500">
+        <span className="font-semibold text-slate-700">Template:</span>{" "}
+        {templateLabel}
+      </p>
       <div className="mt-3">
         <GeneratePdfButton
           onGenerate={onGenerate}

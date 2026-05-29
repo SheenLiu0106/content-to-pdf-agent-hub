@@ -1,8 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { ExtractRequestSchema } from "../shared/schema.js";
-import { normalizeUseCase } from "../shared/normalizeUseCase.js";
-import { getProvider } from "../llm/factory.js";
 import { LLMProviderError } from "../llm/provider.js";
+import { runExtractAgent } from "../agents/contentToPdfAgent/agent.js";
 
 export async function registerExtractRoute(app: FastifyInstance) {
   app.post("/api/extract", async (req, reply) => {
@@ -15,11 +14,9 @@ export async function registerExtractRoute(app: FastifyInstance) {
       });
     }
 
-    const provider = getProvider();
     try {
-      const extracted = await provider.extract(parsed.data.rawContent);
-      const normalized = normalizeUseCase(extracted);
-      return reply.send(normalized);
+      const result = await runExtractAgent(parsed.data.rawContent);
+      return reply.send(result);
     } catch (err) {
       if (err instanceof LLMProviderError) {
         req.log.error({ err, provider: err.provider, kind: err.kind }, "extraction failed");

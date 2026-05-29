@@ -1,0 +1,343 @@
+/* Executive Memo — shares brand colors, typography, content-page chrome,
+   supporting-visual, copyright, and footer rules with the other templates.
+   Page 1 differs: no hero image, no overlay, no 4-card grid. A masthead
+   with brand wordmark + document label sits above the title and the
+   memo's structured blocks. */
+
+@page {
+  size: Letter;
+  margin: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Helvetica, Arial, sans-serif;
+  color: #0f172a;
+  font-size: 10.5pt;
+  line-height: 1.55;
+}
+
+.doc {
+  width: 100%;
+}
+
+/* ============================== Cover (page 1) ============================ */
+.memo-cover {
+  page-break-after: always;
+  break-after: page;
+  padding: 0.55in 0.65in 0.45in;
+}
+
+.memo-masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--primary);
+  margin-bottom: 20px;
+}
+
+.memo-brand {
+  font-size: 12pt;
+  font-weight: 700;
+  color: var(--primary);
+  letter-spacing: -0.2px;
+  max-width: 3in;
+}
+
+.memo-brand img {
+  max-height: 30px;
+  max-width: 2.6in;
+  width: auto;
+  height: auto;
+  display: block;
+}
+
+.memo-label {
+  font-size: 9pt;
+  font-weight: 700;
+  letter-spacing: 2.4px;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.memo-cover .title {
+  font-size: 22pt;
+  line-height: 1.15;
+  letter-spacing: -0.4px;
+  color: var(--primary);
+  margin: 0 0 18px;
+  font-weight: 700;
+}
+
+/* Structured cover blocks. Each block has a small uppercase eyebrow and a
+   body region. Identical visual rhythm so the memo reads like one document
+   rather than a stack of unrelated cards. */
+.memo-block {
+  margin-bottom: 16px;
+  break-inside: avoid;
+}
+
+.memo-block h2 {
+  margin: 0 0 6px;
+  font-size: 9.5pt;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.memo-block p {
+  margin: 0 0 6px;
+}
+
+.memo-block ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.memo-block li {
+  margin-bottom: 4px;
+}
+
+.memo-block li:last-child {
+  margin-bottom: 0;
+}
+
+/* Executive summary callout — a soft tinted block to anchor the memo. */
+.memo-exec-summary {
+  background: color-mix(in srgb, var(--accent) 8%, white);
+  border-left: 4px solid var(--accent);
+  padding: 12px 14px;
+  border-radius: 6px;
+}
+
+/* Recommendation block — bordered card with the primary brand color so it
+   reads as the headline decision. */
+.memo-recommendation {
+  padding: 12px 14px;
+  background: #ffffff;
+  border: 1px solid color-mix(in srgb, var(--primary) 30%, white);
+  border-left: 4px solid var(--primary);
+  border-radius: 6px;
+}
+
+/* Key points list — neutral, no card chrome. */
+.memo-key-points {
+  padding-left: 0;
+}
+
+/* ============================== Content pages (2+) ======================== */
+.content-page {
+  padding: 0.5in 0.65in 0.55in;
+}
+
+/* Running-header chrome for the memo body. The header sits in <thead>, which
+   Chromium repeats atop every continuation page the table breaks across, so
+   page 3+ get the same header as page 2. Page padding lives on the cells (the
+   <td>s) because the table itself is the page-spanning box. */
+.content-page-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* Force the header group to repeat on every page fragment. */
+.content-page-table > thead {
+  display: table-header-group;
+}
+
+.content-page-table td {
+  padding: 0;
+  vertical-align: top;
+}
+
+/* Top + side page margins for the repeated header; the header owns its own
+   bottom gap (margin-bottom on .content-page-header). */
+.content-page-table > thead td {
+  padding: 0.5in 0.65in 0;
+}
+
+/* Side + bottom page margins for the flowing body. */
+.content-page-table > tbody td {
+  padding: 0 0.65in 0.55in;
+}
+
+.content-page.supporting-visual-page {
+  page-break-before: always;
+  break-before: page;
+}
+
+.content-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.18in;
+  margin-bottom: 0.18in;
+  padding-bottom: 0.07in;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 8pt;
+  color: #64748b;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.content-page-header-brand {
+  flex: 0 0 auto;
+  color: #0f172a;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.content-page-header-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: #334155;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: right;
+}
+
+.memo-body h2 {
+  font-size: 13pt;
+  color: var(--primary);
+  margin: 18px 0 6px;
+  letter-spacing: -0.2px;
+}
+
+.memo-body .content-page-body > :first-child,
+.memo-body > :first-child > h2:first-child {
+  margin-top: 0;
+}
+
+.memo-body p {
+  margin: 0 0 8px;
+  text-align: justify;
+  hyphens: auto;
+}
+
+.memo-body ul {
+  margin: 0 0 12px;
+  padding-left: 18px;
+}
+
+.memo-body li {
+  margin-bottom: 4px;
+}
+
+.memo-section {
+  break-inside: avoid;
+  margin-bottom: 14px;
+}
+
+.memo-risks {
+  background: #fef3c7;
+  border-left: 4px solid #f59e0b;
+  padding: 12px 14px;
+  border-radius: 6px;
+  margin: 16px 0;
+}
+
+.memo-risks h2 {
+  margin-top: 0;
+  color: #92400e;
+  font-size: 11pt;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+}
+
+.memo-risks ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.memo-next-steps {
+  background: color-mix(in srgb, var(--primary) 6%, white);
+  border-left: 4px solid var(--primary);
+  padding: 12px 14px;
+  border-radius: 6px;
+  margin: 16px 0;
+}
+
+.memo-next-steps h2 {
+  margin-top: 0;
+  color: var(--primary);
+  font-size: 11pt;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+}
+
+.memo-next-steps ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.supporting-visual {
+  margin: 18px 0;
+  padding: 14px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  break-inside: avoid;
+}
+
+.supporting-visual .visual-title {
+  font-size: 9pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.6px;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.supporting-visual .visual-svg,
+.supporting-visual .visual-image {
+  text-align: center;
+}
+
+.supporting-visual .visual-svg svg {
+  max-width: 100%;
+  height: auto;
+  max-height: 4.5in;
+}
+
+.supporting-visual .visual-image img {
+  max-width: 100%;
+  height: auto;
+  max-height: 4.5in;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.supporting-visual .visual-desc {
+  margin-top: 8px;
+  font-size: 9pt;
+  color: #475569;
+  text-align: center;
+}
+
+.document-copyright {
+  margin-top: 0.25in;
+  padding-top: 0.08in;
+  border-top: 1px solid #e5e7eb;
+  font-size: 9px;
+  color: #64748b;
+  text-align: right;
+  break-inside: avoid;
+  page-break-inside: avoid;
+  page-break-before: avoid;
+  break-before: avoid;
+}

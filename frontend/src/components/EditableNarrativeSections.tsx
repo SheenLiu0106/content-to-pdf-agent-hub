@@ -1,11 +1,21 @@
+import type { ReactNode } from "react";
 import type { NarrativeSection } from "@shared/useCaseSchema";
 
 interface Props {
   sections: NarrativeSection[];
   onChange: (next: NarrativeSection[]) => void;
+  // Optional per-section slot rendered below the body textarea. Used by
+  // EditableArticleReportPreview to inject inline-visual controls; the
+  // case-study and memo previews leave it undefined and get the original
+  // body-only layout.
+  renderAfterBody?: (sectionIndex: number) => ReactNode;
 }
 
-export default function EditableNarrativeSections({ sections, onChange }: Props) {
+export default function EditableNarrativeSections({
+  sections,
+  onChange,
+  renderAfterBody,
+}: Props) {
   function update(i: number, patch: Partial<NarrativeSection>) {
     const next = sections.slice();
     next[i] = { ...next[i]!, ...patch };
@@ -66,6 +76,9 @@ export default function EditableNarrativeSections({ sections, onChange }: Props)
                 rows={6}
                 className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm leading-relaxed text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
               />
+              {renderAfterBody && (
+                <div className="mt-3">{renderAfterBody(i)}</div>
+              )}
             </div>
           ))}
         </div>

@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { RenderPdfRequestSchema } from "../shared/useCaseSchema.js";
-import { renderPdf } from "../pdf/renderer.js";
+import { getFilenamePrefix } from "../shared/templates.js";
+import { runRenderAgent } from "../agents/contentToPdfAgent/agent.js";
 
 function slugify(text: string): string {
   return (
@@ -8,7 +9,7 @@ function slugify(text: string): string {
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "")
-      .slice(0, 60) || "success-story"
+      .slice(0, 60) || "document"
   );
 }
 
@@ -24,14 +25,22 @@ export async function registerRenderPdfRoute(app: FastifyInstance) {
     }
 
     try {
-      const filename = `success-story-${slugify(parsed.data.content.title)}.pdf`;
-      const pdf = await renderPdf(parsed.data.content, parsed.data.config, {
-        filename,
-      });
+      const prefix = getFilenamePrefix(parsed.data.config.templateId);
+      const filename = `${prefix}${slugify(parsed.data.content.title)}.pdf`;
+      const { pdf, attempts, appliedActions } = await runRenderAgent(
+        parsed.data.content,
+        parsed.data.config,
+        { filename }
+      );
       reply
         .header("Content-Type", "application/pdf")
         .header("Content-Disposition", `attachment; filename="${filename}"`)
         .header("Content-Length", String(pdf.length))
+        .header("X-Agent-Repair-Attempts", String(attempts))
+        .header(
+          "X-Agent-Repair-Actions",
+          appliedActions.map((a) => a.type).join(",") || "none"
+        )
         .send(pdf);
     } catch (err) {
       req.log.error({ err }, "PDF render failed");

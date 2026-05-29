@@ -3,6 +3,7 @@ export type StepId = "paste" | "extract" | "edit" | "brand" | "generate";
 interface Props {
   current: StepId;
   completed: ReadonlySet<StepId>;
+  substages?: string[];
 }
 
 const STEPS: { id: StepId; label: string }[] = [
@@ -13,7 +14,7 @@ const STEPS: { id: StepId; label: string }[] = [
   { id: "generate", label: "Generate" },
 ];
 
-export default function StepBar({ current, completed }: Props) {
+export default function StepBar({ current, completed, substages }: Props) {
   return (
     <nav aria-label="Workflow steps" className="w-full">
       <ol className="flex w-full items-center gap-1 sm:gap-1.5">
@@ -74,6 +75,16 @@ export default function StepBar({ current, completed }: Props) {
           );
         })}
       </ol>
+      {substages && substages.length > 0 && (
+        <div className="mt-1.5 flex items-center gap-1 text-[10px] uppercase tracking-wide text-indigo-600">
+          {substages.map((s, i) => (
+            <span key={i} className="flex items-center gap-1">
+              {i > 0 && <span aria-hidden="true" className="text-slate-300">›</span>}
+              <span className="rounded bg-indigo-50 px-1.5 py-0.5 font-medium">{s}</span>
+            </span>
+          ))}
+        </div>
+      )}
     </nav>
   );
 }

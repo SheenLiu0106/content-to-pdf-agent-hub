@@ -1,4 +1,5 @@
 import type { UseCase, PdfRenderConfig } from "@shared/useCaseSchema";
+import type { ExtractAgentResponse } from "@shared/agentTypes";
 
 export interface ApiError {
   status: number;
@@ -21,14 +22,14 @@ async function readError(res: Response): Promise<ApiError> {
   }
 }
 
-export async function extract(rawContent: string): Promise<UseCase> {
+export async function extract(rawContent: string): Promise<ExtractAgentResponse> {
   const res = await fetch("/api/extract", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ rawContent }),
   });
   if (!res.ok) throw await readError(res);
-  return (await res.json()) as UseCase;
+  return (await res.json()) as ExtractAgentResponse;
 }
 
 export async function validateMermaid(
@@ -48,7 +49,12 @@ export async function validateMermaid(
 export async function renderPdf(
   content: UseCase,
   config: PdfRenderConfig
-): Promise<{ blob: Blob; filename: string }> {
+): Promise<{
+  blob: Blob;
+  filename: string;
+  repairAttempts: number;
+  repairActions: string[];
+}> {
   const res = await fetch("/api/render-pdf", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -57,7 +63,11 @@ export async function renderPdf(
   if (!res.ok) throw await readError(res);
   const disposition = res.headers.get("content-disposition") ?? "";
   const match = /filename="([^"]+)"/.exec(disposition);
-  const filename = match?.[1] ?? "success-story.pdf";
+  const filename = match?.[1] ?? "document.pdf";
+  const repairAttempts = Number(res.headers.get("x-agent-repair-attempts") ?? 0) || 0;
+  const repairActionsHeader = res.headers.get("x-agent-repair-actions") ?? "none";
+  const repairActions =
+    repairActionsHeader === "none" ? [] : repairActionsHeader.split(",").filter(Boolean);
   const blob = await res.blob();
-  return { blob, filename };
+  return { blob, filename, repairAttempts, repairActions };
 }

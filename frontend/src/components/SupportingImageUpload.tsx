@@ -1,39 +1,18 @@
 import { useRef, useState } from "react";
 import type { ClipboardEvent, KeyboardEvent } from "react";
 import { readImageFromClipboard } from "../lib/clipboardImage";
+import {
+  IMAGE_ACCEPTED_MIME,
+  checkImageFileSize,
+  fileToDataUrl,
+} from "../lib/imageUpload";
 
 interface Props {
   value: string | null;
   onChange: (dataUrl: string | null) => void;
 }
 
-const ACCEPTED = "image/png,image/jpeg,image/webp";
-const MAX_FILE_BYTES = 8 * 1024 * 1024;
-const WARN_FILE_BYTES = 2 * 1024 * 1024;
-const MAX_DIMENSION = 1600;
-
-async function downscaleToDataUrl(file: File): Promise<string> {
-  const isWebp = file.type === "image/webp";
-  const bitmap = await createImageBitmap(file);
-  const { width, height } = bitmap;
-  const longest = Math.max(width, height);
-  let outW = width;
-  let outH = height;
-  if (longest > MAX_DIMENSION) {
-    const scale = MAX_DIMENSION / longest;
-    outW = Math.round(width * scale);
-    outH = Math.round(height * scale);
-  }
-  const canvas = document.createElement("canvas");
-  canvas.width = outW;
-  canvas.height = outH;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Canvas 2D context unavailable");
-  ctx.drawImage(bitmap, 0, 0, outW, outH);
-  bitmap.close?.();
-  const mime = isWebp ? "image/webp" : "image/jpeg";
-  return canvas.toDataURL(mime, 0.85);
-}
+const ACCEPTED = IMAGE_ACCEPTED_MIME;
 
 export default function SupportingImageUpload({ value, onChange }: Props) {
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -42,16 +21,15 @@ export default function SupportingImageUpload({ value, onChange }: Props) {
 
   async function handleFile(file: File) {
     setWarning(null);
-    if (file.size > MAX_FILE_BYTES) {
-      setWarning("File is larger than 8MB. Please choose a smaller image.");
+    const sizeCheck = checkImageFileSize(file);
+    if (!sizeCheck.ok) {
+      setWarning(sizeCheck.warning);
       return;
     }
-    if (file.size > WARN_FILE_BYTES) {
-      setWarning("Image is larger than 2MB — it will be downscaled for you.");
-    }
+    if (sizeCheck.warning) setWarning(sizeCheck.warning);
     setBusy(true);
     try {
-      const dataUrl = await downscaleToDataUrl(file);
+      const dataUrl = await fileToDataUrl(file);
       onChange(dataUrl);
     } catch (err) {
       setWarning(`Failed to read image: ${(err as Error).message}`);

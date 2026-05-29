@@ -25,7 +25,23 @@ You must:
 7. Generate a simple Mermaid diagram representing the use case workflow, architecture, decision process, data flow, or impact pathway. Follow the Mermaid rules below.
 8. Populate \`missingFields\` with the exact schema field names for any information absent or unsupported by the source (e.g. "solutionName", "callToAction").
 9. Populate \`expansionNotes\` with short notes describing where you expanded or inferred (e.g. "Added industry context for predictive maintenance."). If no expansion happened, return an empty array.
-10. Classify \`contentType\` as one of: use_case, success_story, case_study, project_summary, marketing_brief, executive_memo, general_article. If you cannot classify confidently, choose \`use_case\` and add "contentType_uncertain" to \`missingFields\`. (This field is used internally only; it is not rendered in the PDF.)
+10. Classify \`contentType\` by **document intent**, not by keyword matching. Evaluate in this order:
+
+    a) **Article family** (default for conceptual, explanatory, analytical, educational, or thought-leadership content — discusses a concept/trend/framework, compares approaches, argues a point, or educates the reader): \`article\`, \`general_article\`, \`thought_leadership\`, \`newsletter\`.
+
+    b) **Memo family** (decision-oriented or internal-business: recommendations, next steps, risks, background, leadership updates, action items): \`executive_memo\`, \`memo\`, \`decision_brief\`, \`meeting_summary\`.
+
+    c) **Case-study family** — choose ONLY when the source describes a concrete project/customer/operator implementation with all of: a named or clearly-identified customer/client/operator/facility, a specific challenge, an implemented solution, and a measurable or named outcome: \`use_case\`, \`success_story\`, \`case_study\`, \`project_summary\`, \`marketing_brief\`.
+
+    An explicit "Success Story", "Customer Success Story", or "Case Study" title/heading is by itself sufficient to classify into the case-study family, even without a named customer or a quantified metric.
+
+    Words like "solution", "benefits", "results", "operations", "AI", "workflow", "framework", "system", "use case", or "use cases" do NOT by themselves make content a case study. Conceptual writing routinely uses these terms.
+
+    Concrete example — this title and content style:
+      "Why Context Graphs Matter More Than Rules for Autonomous AI Agents"
+    is **thought_leadership** (article family), because it explains a conceptual framework about AI agents. It is NOT a case study, even if it mentions solutions, benefits, autonomous operations, or improvements in passing.
+
+    If uncertain between case-study and article, **prefer \`general_article\`** and add "contentType_uncertain" to \`missingFields\`. (This field is used internally only; it is not rendered in the PDF.)
 
 Use case context extraction:
 
@@ -41,6 +57,16 @@ Schema rules:
 - Use [] for absent arrays.
 - Never use undefined.
 - Do NOT fabricate pullQuotes. If the source contains no quotable testimonial, return [].
+
+Inline Visual rules (Article family only — article, general_article, thought_leadership, newsletter):
+
+- The \`inlineVisuals\` array is for article-body figures and diagrams. Image references that appeared in the source (Markdown \`![alt](url)\` syntax, HTML \`<img>\` tags, and \`[Image: ...]\` / \`[Figure: ...]\` / \`[Insert image: ...]\` placeholders) are extracted BEFORE you see the text — do NOT try to recover or recreate them.
+- You may emit ONLY entries with \`kind: "image_slot"\`, \`sourceType: "missing"\`, and \`status: "recommended"\`. Never emit \`kind: "image"\`. Never set \`src\` or \`dataUrl\`.
+- Emit a recommended slot only when the article text strongly implies a figure or diagram that the author clearly expected the reader to see. Trigger phrases include "the architecture consists of", "the workflow moves from X to Y to Z", "three layers", "the diagram below shows", "the process can be divided into", "the framework has N major components". Generic mentions of "process" or "system" alone do NOT justify a recommended slot.
+- Each recommended slot must have a concrete, descriptive \`caption\` (≤80 characters) and a \`sectionIndex\` (0-based integer) matching the order of \`narrativeSections\` you return. The \`altText\` should mirror the caption.
+- Default \`placement\` to "after_section". Set \`id\` to any short unique string ("slot-1", "slot-2", …).
+- Cap the array at 3 recommendations. If the article does not clearly call for a figure, return [].
+- For Memo family and Case-study family content types, ALWAYS return \`inlineVisuals: []\`. Inline visuals are an Article Report feature only.
 
 Mermaid diagram rules:
 
@@ -96,8 +122,14 @@ export const USE_CASE_JSON_SCHEMA = {
         "case_study",
         "project_summary",
         "marketing_brief",
-        "executive_memo",
+        "article",
         "general_article",
+        "thought_leadership",
+        "newsletter",
+        "executive_memo",
+        "memo",
+        "decision_brief",
+        "meeting_summary",
       ],
     },
     solutionName: { type: ["string", "null"] },
@@ -148,6 +180,41 @@ export const USE_CASE_JSON_SCHEMA = {
       ],
     },
     callToAction: { type: ["string", "null"] },
+    inlineVisuals: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          id: { type: "string" },
+          kind: { type: "string", enum: ["image", "image_slot"] },
+          sourceType: {
+            type: "string",
+            enum: ["uploaded", "pasted", "url", "missing"],
+          },
+          src: { type: "string" },
+          dataUrl: { type: "string" },
+          caption: { type: "string" },
+          altText: { type: "string" },
+          sectionIndex: { type: "integer", minimum: 0 },
+          placement: {
+            type: "string",
+            enum: [
+              "after_section_heading",
+              "after_first_paragraph",
+              "between_paragraphs",
+              "after_section",
+              "manual",
+            ],
+          },
+          status: {
+            type: "string",
+            enum: ["ready", "needs_upload", "recommended", "failed"],
+          },
+        },
+        required: ["id", "kind", "sourceType"],
+      },
+    },
     missingFields: { type: "array", items: { type: "string" } },
     expansionNotes: { type: "array", items: { type: "string" } },
   },
@@ -167,6 +234,7 @@ export const USE_CASE_JSON_SCHEMA = {
     "pullQuotes",
     "mermaidDiagram",
     "callToAction",
+    "inlineVisuals",
     "missingFields",
     "expansionNotes",
   ],
