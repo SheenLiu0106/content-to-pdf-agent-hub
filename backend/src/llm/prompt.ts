@@ -20,7 +20,7 @@ You must:
 2. Improve clarity, grammar, and business tone.
 3. Expand short content only when expansion is grounded in the source or general industry context (see the expansion rules below).
 4. Never invent customer names, metrics, percentages, financial impact, quotes, attribution, deployment scale, dates, or unsupported technical claims. Do NOT infer or invent a client name or client website — those fields no longer exist in the schema.
-5. Extract four summary lists from the source: goals, challenges, solutions, results — short, concise business-language bullets. Hard caps below. If the source has no metrics, keep results qualitative; do not fabricate numbers.
+5. Extract four summary lists from the source: goals, challenges, solutions, results — short, concise business-language bullets (counts/length caps below). For case-study / success-story / use-case / project-summary / marketing-brief content (the Customer Case Study family), produce EXACTLY 4 bullets in each of the four lists. For all other content types, return only as many bullets as the source genuinely supports. If the source has no metrics, keep results qualitative; do not fabricate numbers.
 6. Generate narrative sections for page 2 of the PDF (up to 3 sections, each with a heading and a tight 1–2 paragraph body — see length caps below).
 7. Generate a simple Mermaid diagram representing the use case workflow, architecture, decision process, data flow, or impact pathway. Follow the Mermaid rules below.
 8. Populate \`missingFields\` with the exact schema field names for any information absent or unsupported by the source (e.g. "solutionName", "callToAction").
@@ -84,11 +84,10 @@ Length guidance (PDF layout is sensitive to overruns — keep within these caps)
 - title: prefer ≤85 characters, hard max 120. Should fit on at most two lines in the PDF.
 - subtitle: a single short phrase, prefer ≤110 characters, or null.
 - solutionName: ≤45 characters. industry: ≤30 characters. useCaseFocus: ≤45 characters. Shorten rather than letting metadata wrap.
-- goals: max 2 bullets, each ≤95 characters.
-- challenges: max 2 bullets, each ≤95 characters.
-- solutions: max 3 bullets, each ≤95 characters.
-- results: max 3 bullets, each ≤95 characters.
-- Bullets must use concise business language. Avoid long dependent clauses, parentheticals, or lists-inside-bullets.
+- goals / challenges / solutions / results: for the Customer Case Study family, EXACTLY 4 bullets per list. For all other content types, at most 4 bullets per list.
+- Each summary bullet: one clear idea, ~8–16 words, hard max 90 characters. Do not repeat a point across bullets in the same list. Use plain business language.
+- Bullets must use concise business language. Avoid long compound sentences, dependent clauses, parentheticals, or lists-inside-bullets.
+- For Results, qualitative outcomes are acceptable when the source provides no quantitative metrics — never fabricate numbers, percentages, or named figures.
 - executiveSummary: 2–4 sentences, target 80–110 words, never more than 110.
 - narrativeSections: prefer 2–3 sections. Each section's body 70–110 words, never more than 110. Combined body across all sections target 260–360 words. End every section on a complete sentence with a terminal period.
 - mermaidDiagram.description: 1–2 short sentences, target ≤40 words, or null if no description is needed.

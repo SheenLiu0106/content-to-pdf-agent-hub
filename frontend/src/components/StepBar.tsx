@@ -17,58 +17,45 @@ const STEPS: { id: StepId; label: string }[] = [
 export default function StepBar({ current, completed, substages }: Props) {
   return (
     <nav aria-label="Workflow steps" className="w-full">
-      <ol className="flex w-full items-center gap-1 sm:gap-1.5">
+      <ol className="flex w-full items-center">
         {STEPS.map((step, idx) => {
           const isCompleted = completed.has(step.id);
           const isCurrent = current === step.id;
           const isLast = idx === STEPS.length - 1;
 
-          const circleClass = isCompleted
-            ? "bg-indigo-600 text-white ring-2 ring-indigo-100"
+          // Restrained dots — a thin ring at rest, a filled accent dot when
+          // active or done. No heavy circles, no boxed numbers.
+          const dotClass = isCompleted
+            ? "bg-indigo-500"
             : isCurrent
-              ? "bg-white text-indigo-700 ring-2 ring-indigo-500 shadow-sm"
-              : "bg-white text-slate-400 ring-1 ring-slate-200";
+              ? "bg-indigo-500 ring-4 ring-indigo-500/15"
+              : "bg-slate-300/70";
 
           const labelClass = isCurrent
-            ? "font-semibold text-slate-900"
+            ? "text-slate-900"
             : isCompleted
-              ? "font-medium text-slate-700"
-              : "font-medium text-slate-400";
-
-          const connectorClass = isCompleted ? "bg-indigo-300" : "bg-slate-200";
+              ? "text-slate-500"
+              : "text-slate-400";
 
           return (
-            <li key={step.id} className="flex flex-1 items-center gap-1.5 sm:gap-2">
-              <div className="flex items-center gap-1.5 sm:gap-2">
+            <li key={step.id} className="flex flex-1 items-center last:flex-none">
+              <div className="flex items-center gap-2">
                 <span
-                  className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-semibold transition-colors ${circleClass}`}
+                  className={`h-2 w-2 flex-shrink-0 rounded-full transition-all duration-500 ease-spring ${dotClass}`}
                   aria-current={isCurrent ? "step" : undefined}
+                />
+                <span
+                  className={`hidden text-[10px] font-medium uppercase tracking-[0.18em] transition-colors duration-500 ease-spring sm:inline ${labelClass}`}
                 >
-                  {isCompleted ? (
-                    <svg
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                      className="h-3 w-3"
-                      aria-hidden="true"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M16.704 5.29a1 1 0 0 1 .006 1.414l-7.07 7.146a1 1 0 0 1-1.42.006L3.29 8.95a1 1 0 1 1 1.42-1.408l3.215 3.244 6.36-6.43a1 1 0 0 1 1.42-.066Z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  ) : (
-                    idx + 1
-                  )}
-                </span>
-                <span className={`hidden text-[11px] uppercase tracking-wide sm:inline ${labelClass}`}>
                   {step.label}
                 </span>
               </div>
               {!isLast && (
                 <span
                   aria-hidden="true"
-                  className={`h-px flex-1 ${connectorClass}`}
+                  className={`mx-3 h-px flex-1 origin-left transition-all duration-700 ease-spring ${
+                    isCompleted ? "bg-indigo-300" : "bg-slate-200"
+                  }`}
                 />
               )}
             </li>
@@ -76,11 +63,17 @@ export default function StepBar({ current, completed, substages }: Props) {
         })}
       </ol>
       {substages && substages.length > 0 && (
-        <div className="mt-1.5 flex items-center gap-1 text-[10px] uppercase tracking-wide text-indigo-600">
+        <div className="mt-3 flex flex-wrap items-center gap-1.5 text-[10px] uppercase tracking-[0.16em] text-indigo-500/90">
           {substages.map((s, i) => (
-            <span key={i} className="flex items-center gap-1">
-              {i > 0 && <span aria-hidden="true" className="text-slate-300">›</span>}
-              <span className="rounded bg-indigo-50 px-1.5 py-0.5 font-medium">{s}</span>
+            <span key={i} className="flex items-center gap-1.5">
+              {i > 0 && (
+                <span aria-hidden="true" className="text-slate-300">
+                  ·
+                </span>
+              )}
+              <span className="rounded-full bg-indigo-500/[0.07] px-2.5 py-1 font-semibold text-indigo-600">
+                {s}
+              </span>
             </span>
           ))}
         </div>

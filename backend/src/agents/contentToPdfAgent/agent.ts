@@ -16,7 +16,11 @@ import {
   extractInlineVisuals,
   mergeInlineVisuals,
 } from "../../shared/extractInlineVisuals.js";
-import { normalizeUseCase } from "../../shared/normalizeUseCase.js";
+import {
+  normalizeCaseStudySummary,
+  normalizeUseCase,
+  trimSummaryToLegacyCaps,
+} from "../../shared/normalizeUseCase.js";
 import { resolveInlineVisualUrls } from "../../pdf/fetchInlineVisualUrls.js";
 import { renderPdf } from "../../pdf/renderer.js";
 import { runIntake, detectUseCaseSignal } from "./intake.js";
@@ -100,10 +104,17 @@ export async function runExtractAgent(
     preprocessorVisuals,
     extracted.inlineVisuals ?? []
   );
-  const withVisuals: UseCase = normalizeUseCase({
-    ...extracted,
-    inlineVisuals: mergedVisuals,
-  });
+  // Pass the resolved template so the summary-bullet policy matches what the
+  // PDF will use: the Customer Case Study template gets exactly four bullets
+  // per section here (so the editable payload the UI shows already reflects
+  // it); Article Report / Executive Memo keep the legacy uneven caps.
+  const withVisuals: UseCase = normalizeUseCase(
+    {
+      ...extracted,
+      inlineVisuals: mergedVisuals,
+    },
+    { templateId: strategy.templateId }
+  );
 
   const edited = runContentEditor(withVisuals, strategy);
 
@@ -176,6 +187,18 @@ export async function runRenderAgent(
       ? await resolveInlineVisualUrls(content.inlineVisuals)
       : content.inlineVisuals;
   content = { ...content, inlineVisuals: resolvedVisuals };
+
+  // Enforce the template-scoped summary-bullet policy against the FINAL
+  // template the user is rendering with. This is the authoritative guarantee
+  // that every Customer Case Study PDF carries exactly four bullets per
+  // section (Goals / Challenges / Solutions / Results) — even if the user
+  // edited the draft or switched templates after extraction. For the other
+  // two templates we re-assert the legacy caps so a case-study draft switched
+  // to Article/Memo can't inflate their bullet counts.
+  content =
+    config.templateId === "usecase"
+      ? normalizeCaseStudySummary(content)
+      : trimSummaryToLegacyCaps(content);
 
   // Re-derive strategy + plan against the edited content. The raw paste
   // isn't available here, so Intake/Strategy run off the structured content.

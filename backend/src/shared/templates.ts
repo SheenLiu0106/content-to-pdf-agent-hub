@@ -75,6 +75,21 @@ export function isArticleFamilyType(contentType: UseCaseContentType): boolean {
   return CONTENT_TYPE_TO_TEMPLATE[contentType] === "article_report";
 }
 
+// Deterministic content type → template mapping. Exported so the normalizer
+// can decide the summary-bullet policy (exactly-4 for the Customer Case Study
+// template, legacy uneven caps for the others) without re-running
+// classification. Pure lookup — does not change any selection logic.
+export function templateIdForContentType(
+  contentType: UseCaseContentType
+): TemplateId {
+  return CONTENT_TYPE_TO_TEMPLATE[contentType] ?? "article_report";
+}
+
+// True when a content type maps to the Customer Case Study template.
+export function isCaseStudyFamilyType(contentType: UseCaseContentType): boolean {
+  return CONTENT_TYPE_TO_TEMPLATE[contentType] === "usecase";
+}
+
 export function getTemplateDefinition(id: TemplateId): TemplateDefinition {
   const found = TEMPLATE_DEFINITIONS.find((t) => t.id === id);
   return found ?? TEMPLATE_DEFINITIONS[0]!;

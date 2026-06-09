@@ -57,7 +57,10 @@ export type QualityIssueCode =
   | "missing_footer"
   | "failed_visual"
   | "filename_error"
-  | "copyright_error";
+  | "copyright_error"
+  // Customer Case Study page-1 validation (usecase template only).
+  | "summary_count_mismatch"
+  | "summary_overflow_risk";
 
 export type QualityIssueLocation =
   | "page1"
@@ -84,7 +87,10 @@ export type RepairAction =
   | { type: "compress_narrative"; targetWords: number }
   | { type: "omit_supporting_visual" }
   | { type: "repair_sentence_fragments" }
-  | { type: "rerender_pdf" };
+  | { type: "rerender_pdf" }
+  // Customer Case Study summary repairs (usecase template only).
+  | { type: "renormalize_case_study_summary" }
+  | { type: "compress_case_study_summary"; maxChars: number };
 
 // Wire response shape for POST /api/extract. UseCase remains the editable
 // payload; the rest are read-only agent decisions the frontend can surface.

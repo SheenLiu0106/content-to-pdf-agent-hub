@@ -113,10 +113,12 @@ export default function SupportingVisualSection({
   }
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm ring-1 ring-slate-100/60">
-      <h3 className="text-sm font-semibold text-slate-900">Supporting Visual</h3>
+    <section>
+      <h3 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+        Supporting Visual
+      </h3>
 
-      <label className="mt-3 flex items-start gap-2 text-xs text-slate-700">
+      <label className="mt-4 flex items-start gap-2 text-xs text-slate-700">
         <input
           type="checkbox"
           checked={enabled}

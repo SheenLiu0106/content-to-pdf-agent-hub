@@ -32,6 +32,23 @@ export async function extract(rawContent: string): Promise<ExtractAgentResponse>
   return (await res.json()) as ExtractAgentResponse;
 }
 
+// Re-normalize extracted content for a specific template (no LLM). Keeps the
+// editable content in lockstep with the selected template so the Review/Edit
+// screen shows exactly what the PDF will render.
+export async function normalize(
+  content: UseCase,
+  templateId: PdfRenderConfig["templateId"]
+): Promise<UseCase> {
+  const res = await fetch("/api/normalize", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ content, templateId }),
+  });
+  if (!res.ok) throw await readError(res);
+  const body = (await res.json()) as { content: UseCase };
+  return body.content;
+}
+
 export async function validateMermaid(
   code: string
 ): Promise<{ ok: boolean; svg: string }> {

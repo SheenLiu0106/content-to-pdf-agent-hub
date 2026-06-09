@@ -91,6 +91,26 @@ function buildSummaryCard(label: string, items: string[], cardClass: string): st
 
 export type CoverDensity = "compact" | "normal" | "spacious";
 
+// A "dense" summary is the Customer Case Study cover carrying its full 16
+// bullets (4 per section). The 2×2 grid then dominates page 1, so the cover
+// always needs the tightest layout track to fit a hero + title + meta + grid
+// + footer on a single Letter page. We treat >=13 as dense to also cover the
+// rare 3-bullet-section edge during a repair pass.
+const DENSE_SUMMARY_BULLET_THRESHOLD = 13;
+
+function totalSummaryBullets(content: UseCase): number {
+  return (
+    content.goals.length +
+    content.challenges.length +
+    content.solutions.length +
+    content.results.length
+  );
+}
+
+export function hasDenseSummary(content: UseCase): boolean {
+  return totalSummaryBullets(content) >= DENSE_SUMMARY_BULLET_THRESHOLD;
+}
+
 // Pick a cover density based on how much content needs to fit on page 1.
 // Compact protects against overflow when title/subtitle/bullets are long.
 // Spacious fills page 1 visually when every signal is light — short title,
@@ -107,6 +127,12 @@ export function computeCoverDensity(content: UseCase): CoverDensity {
   ];
   const bulletChars = bullets.reduce((acc, b) => acc + b.length, 0);
   const bulletCount = bullets.length;
+
+  // A full 16-bullet case-study grid always uses compact density — the grid
+  // alone needs the reclaimed vertical space (shorter hero, tighter rhythm)
+  // to keep all four cards on page 1. The .dense-summary CSS modifier layers
+  // additional tightening on top (see styles.css).
+  if (hasDenseSummary(content)) return "compact";
 
   if (titleLen > 80 || subtitleLen > 110 || bulletChars > 850) return "compact";
 
@@ -333,7 +359,9 @@ export function renderUseCaseTemplate(
       `</div></section>`
     : "";
 
-  const coverClass = `cover ${density}`;
+  // The .dense-summary modifier layers tighter grid/typography rules on top
+  // of the density track when the cover carries the full 16-bullet grid.
+  const coverClass = `cover ${density}${hasDenseSummary(content) ? " dense-summary" : ""}`;
 
   const replacements: Record<string, string> = {
     styles,

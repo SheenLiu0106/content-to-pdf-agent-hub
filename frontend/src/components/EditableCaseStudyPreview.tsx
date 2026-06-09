@@ -121,7 +121,7 @@ export default function EditableCaseStudyPreview({
         <section>
           <SectionEyebrow>Page 1 summary</SectionEyebrow>
           <p className="mt-1 text-xs text-slate-500">
-            First three items in each list appear on the cover page.
+            Four items in each list appear on the cover page.
           </p>
           <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <EditableBulletList

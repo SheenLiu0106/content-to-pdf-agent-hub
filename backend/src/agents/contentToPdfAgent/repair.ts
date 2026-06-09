@@ -8,6 +8,11 @@ import type {
   CoverDensity,
 } from "../../shared/agentTypes.js";
 import { runContentEditor } from "./contentEditor.js";
+import {
+  CASE_STUDY_BULLET_TIGHT_CHAR_CAP,
+  normalizeCaseStudySummary,
+  tightenCaseStudyBullets,
+} from "../../shared/normalizeUseCase.js";
 
 // Repair stage. Maps quality issues → RepairAction[], applies them to the
 // content/layout/config triple, and signals whether anything actually
@@ -83,6 +88,16 @@ function planActionsForIssue(
     case "failed_visual":
       if (state.layoutPlan.visualPlacement === "omit") return [];
       return [{ type: "omit_supporting_visual" }];
+
+    // Customer Case Study page-1 repairs. Re-normalize restores the exactly-4
+    // contract; overflow risk tightens bullets via semantic compression.
+    case "summary_count_mismatch":
+      return [{ type: "renormalize_case_study_summary" }];
+
+    case "summary_overflow_risk":
+      return [
+        { type: "compress_case_study_summary", maxChars: CASE_STUDY_BULLET_TIGHT_CHAR_CAP },
+      ];
 
     // User-config issues — no automatic repair.
     case "missing_footer":
@@ -164,6 +179,16 @@ function applyAction(action: RepairAction, state: RepairState): RepairState {
       return {
         ...state,
         content: runContentEditor(state.content, state.strategy),
+      };
+    case "renormalize_case_study_summary":
+      return {
+        ...state,
+        content: normalizeCaseStudySummary(state.content),
+      };
+    case "compress_case_study_summary":
+      return {
+        ...state,
+        content: tightenCaseStudyBullets(state.content, action.maxChars),
       };
     case "compress_narrative":
       // Compression already happens in runContentEditor; an explicit

@@ -106,6 +106,57 @@ body {
   margin-bottom: 6px;
 }
 
+/* Dense-summary variant — auto-applied (on top of the compact track) when the
+   Customer Case Study cover carries its full 16-bullet grid (4 per section).
+   Goal: keep hero + title + meta + the four cards + footer on one Letter page
+   without dropping below a readable print size. Tightening is graduated:
+   reclaim vertical space from the hero and gaps first, then a modest type
+   step-down on the summary grid only. Title/body typography is left to the
+   compact track — we do not shrink the title further here. Readable floor:
+   9pt bullets, 9.5pt section headings. */
+.cover.dense-summary .hero {
+  height: 2.3in;
+}
+.cover.dense-summary .cover-body {
+  padding: 0.2in 0.55in 0.28in;
+}
+.cover.dense-summary .cover-body .title {
+  font-size: 19pt;
+  line-height: 1.04;
+  margin: 0 0 4px;
+}
+.cover.dense-summary .accent-rule {
+  margin: 0 0 8px;
+}
+.cover.dense-summary .cover-body .subtitle {
+  font-size: 10pt;
+  line-height: 1.2;
+  margin: 0 0 6px;
+}
+.cover.dense-summary .meta-row {
+  font-size: 8.5pt;
+  margin: 4px 0 8px;
+  padding-bottom: 6px;
+}
+.cover.dense-summary .summary-grid {
+  column-gap: 0.3in;
+  row-gap: 0.1in;
+  margin-top: 6px;
+}
+.cover.dense-summary .summary-section {
+  padding: 0.07in 0 0.02in;
+}
+.cover.dense-summary .summary-section h3 {
+  font-size: 9.5pt;
+  letter-spacing: 1px;
+  margin: 0 0 4px;
+}
+.cover.dense-summary .summary-section li {
+  font-size: 9pt;
+  line-height: 1.26;
+  margin-bottom: 2.5px;
+}
+
 /* Hero — flush at top of page 1, logo overlayed in upper-left. */
 .hero {
   position: relative;

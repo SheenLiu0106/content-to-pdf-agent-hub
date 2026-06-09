@@ -3,6 +3,7 @@ import cors from "@fastify/cors";
 import { config } from "./config.js";
 import { registerHealthRoute } from "./routes/health.js";
 import { registerExtractRoute } from "./routes/extract.js";
+import { registerNormalizeRoute } from "./routes/normalize.js";
 import { registerRenderPdfRoute } from "./routes/renderPdf.js";
 import { registerValidateMermaidRoute } from "./routes/validateMermaid.js";
 import { shutdownRenderer } from "./pdf/renderer.js";
@@ -20,6 +21,7 @@ async function buildServer() {
 
   await registerHealthRoute(app);
   await registerExtractRoute(app);
+  await registerNormalizeRoute(app);
   await registerRenderPdfRoute(app);
   await registerValidateMermaidRoute(app);
 
