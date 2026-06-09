@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { RenderPdfRequestSchema } from "../shared/useCaseSchema.js";
-import { getFilenamePrefix } from "../shared/templates.js";
+import { getFilenamePrefix, getTemplateDefinition } from "../shared/templates.js";
+import { RenderValidationError } from "../shared/normalizeUseCase.js";
 import { runRenderAgent } from "../agents/contentToPdfAgent/agent.js";
 
 function slugify(text: string): string {
@@ -43,6 +44,17 @@ export async function registerRenderPdfRoute(app: FastifyInstance) {
         )
         .send(pdf);
     } catch (err) {
+      // Draft violates the selected template's content contract. Surface the
+      // exact, user-fixable violations BEFORE any PDF is produced rather than
+      // silently rewriting the content to fit (BUG-001).
+      if (err instanceof RenderValidationError) {
+        const label = getTemplateDefinition(parsed.data.config.templateId).label;
+        return reply.code(422).send({
+          error: "render_validation_failed",
+          message: `${label} can't be exported yet — ${err.violations.join(" ")}`,
+          violations: err.violations,
+        });
+      }
       req.log.error({ err }, "PDF render failed");
       return reply.code(500).send({
         error: "render_failed",

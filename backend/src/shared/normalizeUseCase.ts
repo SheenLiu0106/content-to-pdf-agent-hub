@@ -353,6 +353,107 @@ export function normalizeCaseStudySummary(content: UseCase): UseCase {
   };
 }
 
+// ---------------------------------------------------------------------------
+// Pre-render validation (Mode B / BUG-001).
+//
+// The render pipeline must NOT silently mutate user-confirmed content. Instead
+// of re-normalizing at render time (which dropped surplus user bullets,
+// injected fabricated filler, and truncated text behind the user's back), the
+// render agent now validates the draft against the active template's content
+// contract BEFORE rendering and blocks with a clear, user-facing message when
+// it doesn't conform. A draft that passes validation is rendered exactly as the
+// user confirmed it. See backend/src/agents/contentToPdfAgent/agent.ts.
+// ---------------------------------------------------------------------------
+
+// Small tolerance over the layout-safe per-bullet cap. Mirrors the quality
+// review's overflow trigger (cap + 8) so validation and the renderer agree on
+// what "too long to fit page 1" means — we don't block borderline bullets the
+// layout already tolerates, and we never silently truncate the rest.
+const BULLET_CAP_TOLERANCE = 8;
+
+const SUMMARY_SECTION_LABELS: Record<SummaryKey, string> = {
+  goals: "Goals",
+  challenges: "Challenges",
+  solutions: "Solutions",
+  results: "Results",
+};
+
+// Thrown by validateRenderContent's caller when a draft violates the selected
+// template's content contract. The route maps it to a 422 so the frontend can
+// surface the violations before any PDF is produced.
+export class RenderValidationError extends Error {
+  readonly violations: string[];
+  constructor(violations: string[]) {
+    super(
+      `Draft does not satisfy the selected template's content contract: ${violations.join(" ")}`
+    );
+    this.name = "RenderValidationError";
+    this.violations = violations;
+  }
+}
+
+function nonEmptyBullets(items: unknown): string[] {
+  return (Array.isArray(items) ? (items as string[]) : []).filter(
+    (s) => typeof s === "string" && s.trim().length > 0
+  );
+}
+
+// Validate a UseCase against the bullet contract for the template it will be
+// rendered with. Returns human-readable violations (empty array = valid).
+//
+//  - Customer Case Study (usecase): EXACTLY four non-empty bullets per section.
+//  - Article Report / Executive Memo (legacy): AT MOST the per-section cap.
+//
+// In both cases every bullet must fit the layout-safe length so the renderer
+// never has to truncate silently. This replaces the old render-time
+// re-normalization: rather than rewriting the user's content to fit, we tell
+// the user exactly what to fix and render their content unchanged once it
+// conforms.
+export function validateRenderContent(
+  content: UseCase,
+  opts: { templateId: TemplateId }
+): string[] {
+  const violations: string[] = [];
+  const isCaseStudy = opts.templateId === "usecase";
+  const charCap =
+    (isCaseStudy ? CASE_STUDY_BULLET_CHAR_CAP : BULLET_CHAR_CAP) +
+    BULLET_CAP_TOLERANCE;
+
+  for (const key of SUMMARY_KEYS) {
+    const label = SUMMARY_SECTION_LABELS[key];
+    const all = Array.isArray(content[key]) ? (content[key] as string[]) : [];
+    const filled = nonEmptyBullets(all);
+
+    if (filled.length !== all.length) {
+      violations.push(`${label} contains an empty bullet — remove it or add text.`);
+    }
+
+    if (isCaseStudy) {
+      if (filled.length !== CASE_STUDY_BULLET_COUNT) {
+        violations.push(
+          `${label} needs exactly ${CASE_STUDY_BULLET_COUNT} bullets (currently ${filled.length}).`
+        );
+      }
+    } else {
+      const cap = BULLET_LIMITS[key];
+      if (filled.length > cap) {
+        violations.push(
+          `${label} allows at most ${cap} bullet${cap === 1 ? "" : "s"} for this template (currently ${filled.length}).`
+        );
+      }
+    }
+
+    const tooLong = filled.filter((b) => b.trim().length > charCap).length;
+    if (tooLong > 0) {
+      violations.push(
+        `${label} has ${tooLong} bullet${tooLong === 1 ? "" : "s"} over ${charCap} characters — shorten ${tooLong === 1 ? "it" : "them"}.`
+      );
+    }
+  }
+
+  return violations;
+}
+
 function capCaption(value: string | undefined): string | undefined {
   if (!value) return undefined;
   const collapsed = value.trim().replace(/\s+/g, " ");

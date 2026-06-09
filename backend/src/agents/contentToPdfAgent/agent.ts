@@ -17,9 +17,9 @@ import {
   mergeInlineVisuals,
 } from "../../shared/extractInlineVisuals.js";
 import {
-  normalizeCaseStudySummary,
+  RenderValidationError,
   normalizeUseCase,
-  trimSummaryToLegacyCaps,
+  validateRenderContent,
 } from "../../shared/normalizeUseCase.js";
 import { resolveInlineVisualUrls } from "../../pdf/fetchInlineVisualUrls.js";
 import { renderPdf } from "../../pdf/renderer.js";
@@ -170,6 +170,20 @@ export async function runRenderAgent(
   config: PdfRenderConfig,
   opts: { filename?: string } = {}
 ): Promise<RenderAgentResult> {
+  // Validate the user-confirmed draft against the selected template's content
+  // contract BEFORE rendering. We no longer silently re-normalize at render
+  // time (which dropped surplus user bullets, injected fabricated filler, and
+  // truncated text behind the user's back). If the draft doesn't conform, throw
+  // a typed error the route maps to a 422 so the frontend surfaces the exact
+  // violations before any PDF is produced. A draft that passes is rendered
+  // exactly as confirmed. (BUG-001)
+  const violations = validateRenderContent(content, {
+    templateId: config.templateId,
+  });
+  if (violations.length > 0) {
+    throw new RenderValidationError(violations);
+  }
+
   // Only Article Report renders inline visuals. Drop them for every other
   // template at the render boundary so non-article templates can't leak
   // images and we don't waste network calls resolving URLs for nothing.
@@ -188,17 +202,12 @@ export async function runRenderAgent(
       : content.inlineVisuals;
   content = { ...content, inlineVisuals: resolvedVisuals };
 
-  // Enforce the template-scoped summary-bullet policy against the FINAL
-  // template the user is rendering with. This is the authoritative guarantee
-  // that every Customer Case Study PDF carries exactly four bullets per
-  // section (Goals / Challenges / Solutions / Results) — even if the user
-  // edited the draft or switched templates after extraction. For the other
-  // two templates we re-assert the legacy caps so a case-study draft switched
-  // to Article/Memo can't inflate their bullet counts.
-  content =
-    config.templateId === "usecase"
-      ? normalizeCaseStudySummary(content)
-      : trimSummaryToLegacyCaps(content);
+  // NOTE: the render-time summary re-normalization that used to live here was
+  // removed (BUG-001). It silently dropped surplus user bullets, injected
+  // fabricated filler into sparse sections, and truncated text — so the
+  // downloaded PDF could differ from the content the user reviewed. The bullet
+  // contract is now enforced by validateRenderContent above (blocking, before
+  // render). The validated `content` is rendered verbatim below.
 
   // Re-derive strategy + plan against the edited content. The raw paste
   // isn't available here, so Intake/Strategy run off the structured content.
@@ -210,31 +219,36 @@ export async function runRenderAgent(
   const history: RepairAction[] = [];
   const appliedActions: RepairAction[] = [];
 
-  let currentContent = content;
+  // The repair loop may only optimize LAYOUT (cover density, supporting-visual
+  // placement, page count) — it must never change the user-confirmed words.
+  // It runs against a working copy so quality review can re-evaluate after a
+  // layout tweak, but the validated `content` is what we render (BUG-001).
+  let workingContent = content;
   let attempts = 0;
-  let report = runQualityReview(currentContent, config, layoutPlan);
+  let report = runQualityReview(workingContent, config, layoutPlan);
 
   while (!report.passed && attempts < MAX_REPAIR_ATTEMPTS) {
-    const actions = planRepair(report, { content: currentContent, strategy, layoutPlan }, history);
+    const actions = planRepair(report, { content: workingContent, strategy, layoutPlan }, history);
     if (actions.length === 0) break;
 
     const next = applyActions(actions, {
-      content: currentContent,
+      content: workingContent,
       strategy,
       layoutPlan,
     });
-    currentContent = next.content;
+    workingContent = next.content;
     strategy = next.strategy;
     layoutPlan = next.layoutPlan;
     history.push(...actions);
     appliedActions.push(...actions);
 
     attempts++;
-    report = runQualityReview(currentContent, config, layoutPlan);
+    report = runQualityReview(workingContent, config, layoutPlan);
   }
 
   const finalConfig = applyLayoutToRenderConfig(config, layoutPlan);
-  const pdf = await renderPdf(currentContent, finalConfig, opts);
+  // Render the user-confirmed content verbatim — never the loop's working copy.
+  const pdf = await renderPdf(content, finalConfig, opts);
 
   return { pdf, attempts, finalReport: report, appliedActions };
 }
