@@ -161,9 +161,9 @@ Body limit is 8 MB to comfortably fit a downscaled hero image, logo, and optiona
 Website values are normalized to domain-only when rendered into the PDF:
 
 ```
-https://www.bkoai.com/  →  www.bkoai.com
-http://bkoai.com        →  bkoai.com
-www.bkoai.com           →  www.bkoai.com
+https://www.bkoai.com/  →  www.company.com
+http://bkoai.com        →  company.com
+www.bkoai.com           →  www.company.com
 ```
 
 Generated PDFs display the website without `https://` (BKOAI shown only as an illustrative user-configured brand example).
