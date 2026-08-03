@@ -20,7 +20,8 @@ Image assets are supported (logo upload/paste, hero image upload/paste, optional
 - **Frontend:** Vite + React + TypeScript + Tailwind
 - **AI:** Pluggable provider adapter — Gemini, Claude, or OpenAI via env var (bring your own key)
 - **Schema:** Zod, shared between frontend and backend as the single source of truth
-- **State:** Stateless. No database, no auth, no submission history.
+- **State:** The interactive flow is stateless — no auth, no submission history. Batch
+  [production runs](#production-runs-batch-gated) persist to SQLite under `DATA_DIR`.
 - **Package manager:** pnpm workspaces
 
 ## Supported content types
@@ -74,8 +75,11 @@ Set in `backend/.env`. Only the credentials for the selected `LLM_PROVIDER` are 
 | `ANTHROPIC_MODEL` | `claude-sonnet-4-6` | Any messages-API capable model |
 | `OPENAI_API_KEY` | — | Required when `LLM_PROVIDER=openai` |
 | `OPENAI_MODEL` | `gpt-4o` | Must support JSON-schema response format |
-| `PORT` | `8787` | Fastify port (local dev uses `8788` to avoid a conflict; Vite proxy targets the same) |
-| `CORS_ORIGIN` | `http://localhost:5173` | Vite dev origin |
+| `PORT` | `8788` | Fastify port; the Vite dev proxy targets the same |
+| `CORS_ORIGIN` | `http://localhost:5179` | Vite dev origin (Vite is pinned to 5179 with `strictPort`) |
+| `DATA_DIR` | `./data` | Durable run store: SQLite database + rendered artifacts. Resolved from `backend/` |
+| `WORKER_ENABLED` | `true` | Set `false` to serve the API without the background run worker. Crash recovery still runs at boot |
+| `RENDER_QA_ENABLED` | `false` | Gates automatic final approval. Leave `false` until rendered-output QA exists |
 
 The backend fails fast at boot if `LLM_PROVIDER` is set without the matching key.
 
@@ -262,10 +266,96 @@ There are two distinct copyright values:
 
 The product-level string is never written into generated PDFs.
 
+## Production runs (batch, gated)
+
+Alongside the interactive paste → edit → generate flow, the backend can run documents
+**unattended with human gates**. This is additive: the five interactive routes are unchanged.
+
+State lives in SQLite under `DATA_DIR`; rendered PDFs are content-addressed at
+`$DATA_DIR/pdfs/<run_id>/<sha256>.pdf` and are immutable.
+
+### Lifecycle
+
+```
+QUEUED → EXTRACTING → REVIEW → READY_TO_RENDER → RENDERING → APPROVAL → APPROVED
+                        ↑                                        │
+                        └──────── request_changes ───────────────┘
+        REJECTED (reviewer abandoned)   FAILED (infrastructure only)
+```
+
+`FAILED` is reserved for infrastructure failures and exhausted retries. Anything a human
+can correct — a render-validation violation, a failing QA verdict — routes to `REVIEW`.
+
+### Policy
+
+| Field | Values | Default |
+|---|---|---|
+| `reviewPolicy` | `only_when_flagged`, `always` | `only_when_flagged` |
+| `approvalMode` | `required`, `auto_if_clean` | `required` |
+
+The review gate is entered whenever **any open blocking issue** exists, regardless of
+policy — `only_when_flagged` may skip review only when the blocking set is empty.
+
+**Automatic approval is currently disabled.** `approvalMode` is persisted and accepted, but
+`RENDER_QA_ENABLED` defaults to `false` and gates it. Today's QA runs only *pre-render*
+heuristics — nothing yet inspects the produced PDF bytes or the rendered layout — and a
+heuristic must not finalize a customer-facing document.
+
+Because `EXPANSION_MODE=standard` produces expansion notes on most documents, and those are
+treated as blocking, `only_when_flagged` behaves close to `always` in practice. Use
+`EXPANSION_MODE=strict` to avoid them globally, or waive them per run.
+
+### Issues
+
+Findings carry a lifecycle. `resolved` is set **only** by the detector going quiet;
+a human can only **waive**, with a reviewer name, a required note, and the finding's
+current fingerprint. A waived finding stays waived across identical re-detection, but a
+*different* finding at the same location reopens it.
+
+### Routes
+
+| Route | Purpose |
+|---|---|
+| `POST /api/runs` | Create a batch: `{ items: [{ name, rawContent }], options?: {...} }` |
+| `GET /api/runs` | List (metadata only; `?status=`, `?batchId=`) |
+| `GET /api/runs/:id` | Full record incl. `currentFingerprint`, `issues`, `approvals`, `events` |
+| `PATCH /api/runs/:id` | One explicit action (see below) |
+| `GET /api/runs/:id/pdf` | Stream the active artifact |
+
+Actions: `update_content`, `update_config`, `pause`, `resume`, `waive_issue`,
+`approve_gate`, `request_changes`, `reject`, `retry`. One request performs one action.
+
+Editing is confined to `REVIEW`. At `APPROVAL` you must `request_changes` first, which
+returns the run to `REVIEW` and clears the active artifact pointer (the file itself stays
+on disk as audit evidence).
+
+Approvals use optimistic concurrency: `expectedFingerprint` is required at both gates and
+`expectedArtifactSha256` additionally at final approval. Stale values return **409**, as does
+any action attempted in the wrong state. Final approval re-hashes the PDF on disk, so a
+corrupted or swapped file cannot be signed.
+
+**Pause is pause-after-current-stage.** It stops the run being claimed again; an in-flight
+LLM or render call is not cancelled.
+
+### Operational notes
+
+- The worker processes one run at a time; `renderPdf` already caps Chromium at 3 concurrent.
+- Crash recovery runs at boot regardless of `WORKER_ENABLED`: interrupted `EXTRACTING` returns
+  to `QUEUED`, `RENDERING` to `READY_TO_RENDER`. A render retry never re-extracts, so human
+  edits survive. Gate and terminal states are never touched.
+- A separate watchdog sweeps expired leases every 30s, so a hung stage recovers without a restart.
+- Render temp files are deleted **only by the worker that created them**. There is no
+  boot-wide or age-based sweep: a second local backend process may share `DATA_DIR` with a
+  worker mid-render, so deleting a temp file whose owner cannot be established could destroy
+  live work. Committed artifacts are never deleted — superseded ones accumulate under
+  `$DATA_DIR/pdfs/<run_id>/` until retention is implemented.
+
 ## Out of scope
 
-- Authentication / multi-user accounts
-- Database-backed submission history
+- Authentication / multi-user accounts — production runs record a free-text `reviewerName` with
+  no identity verification
+- Rendered-output QA (page count, overflow, blank-page detection) and therefore automatic approval
+- Batch intake from a watched folder, and any run-management UI — the runs API is backend-only
 - Reviewer email submission
 - File upload as source content — source content is paste-only (image assets such as logo, hero, and supporting image are uploadable/pasteable)
 - Additional fully-rendered templates beyond the default Customer Case Study template

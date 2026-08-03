@@ -7,8 +7,18 @@ export type Provider = z.infer<typeof ProviderEnum>;
 const BaseEnvSchema = z.object({
   LLM_PROVIDER: ProviderEnum.default("gemini"),
   EXPANSION_MODE: z.enum(["strict", "standard"]).default("standard"),
-  PORT: z.coerce.number().int().positive().default(8787),
-  CORS_ORIGIN: z.string().default("http://localhost:5173"),
+  // Must match frontend/vite.config.ts: the dev proxy targets 8788 and vite
+  // itself is pinned to 5179 with strictPort.
+  PORT: z.coerce.number().int().positive().default(8788),
+  CORS_ORIGIN: z.string().default("http://localhost:5179"),
+
+  // Durable run store (SQLite + rendered artifacts). Resolved from cwd, which
+  // is backend/ under `pnpm dev:backend`.
+  DATA_DIR: z.string().default("./data"),
+  WORKER_ENABLED: z.enum(["true", "false"]).default("true"),
+  // Gates auto-approval. Stays false until Phase 3 implements and validates
+  // real rendered-output checks; Phase 1 only has pre-render heuristics.
+  RENDER_QA_ENABLED: z.enum(["true", "false"]).default("false"),
 
   ANTHROPIC_API_KEY: z.string().optional(),
   ANTHROPIC_MODEL: z.string().default("claude-sonnet-4-6"),
