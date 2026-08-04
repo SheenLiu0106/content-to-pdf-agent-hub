@@ -8,12 +8,14 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "test": "node --import tsx --test src/smoke.test.ts src/runs/store.test.ts src/runs/issues.test.ts src/runs/claim.test.ts src/runs/machine.test.ts src/runs/actions.test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.1",
     "@fastify/cors": "^10.0.1",
     "@google/genai": "^0.3.0",
+    "better-sqlite3": "^11.7.0",
     "dotenv": "^16.4.5",
     "fastify": "^5.1.0",
     "mermaid": "^11.4.0",
@@ -22,6 +24,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
     "@types/node": "^22.10.1",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"

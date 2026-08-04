@@ -413,7 +413,35 @@ export function validateRenderContent(
   content: UseCase,
   opts: { templateId: TemplateId }
 ): string[] {
-  const violations: string[] = [];
+  return validateRenderContentStructured(content, opts).map((v) => v.message);
+}
+
+// What kind of contract violation this is. Stable identifiers — the durable run
+// store uses (kind, section) as an issue's structural coordinate, so it can tell
+// "this same finding again" from "a different finding in the same place" without
+// parsing the human-readable message.
+export type RenderViolationKind =
+  | "empty_bullet"
+  | "bullet_count_exact"
+  | "bullet_count_max"
+  | "bullet_too_long";
+
+export interface RenderViolation {
+  section: SummaryKey;
+  kind: RenderViolationKind;
+  message: string;
+  /** Observed value, so a changed finding at the same coordinate is detectable. */
+  observed: number;
+}
+
+// Structured form of the same single contract check. validateRenderContent is a
+// thin projection of this, so there is exactly one implementation of the rules
+// and the string output is unchanged for existing callers.
+export function validateRenderContentStructured(
+  content: UseCase,
+  opts: { templateId: TemplateId }
+): RenderViolation[] {
+  const violations: RenderViolation[] = [];
   const isCaseStudy = opts.templateId === "usecase";
   const charCap =
     (isCaseStudy ? CASE_STUDY_BULLET_CHAR_CAP : BULLET_CHAR_CAP) +
@@ -425,29 +453,43 @@ export function validateRenderContent(
     const filled = nonEmptyBullets(all);
 
     if (filled.length !== all.length) {
-      violations.push(`${label} contains an empty bullet — remove it or add text.`);
+      violations.push({
+        section: key,
+        kind: "empty_bullet",
+        message: `${label} contains an empty bullet — remove it or add text.`,
+        observed: all.length - filled.length,
+      });
     }
 
     if (isCaseStudy) {
       if (filled.length !== CASE_STUDY_BULLET_COUNT) {
-        violations.push(
-          `${label} needs exactly ${CASE_STUDY_BULLET_COUNT} bullets (currently ${filled.length}).`
-        );
+        violations.push({
+          section: key,
+          kind: "bullet_count_exact",
+          message: `${label} needs exactly ${CASE_STUDY_BULLET_COUNT} bullets (currently ${filled.length}).`,
+          observed: filled.length,
+        });
       }
     } else {
       const cap = BULLET_LIMITS[key];
       if (filled.length > cap) {
-        violations.push(
-          `${label} allows at most ${cap} bullet${cap === 1 ? "" : "s"} for this template (currently ${filled.length}).`
-        );
+        violations.push({
+          section: key,
+          kind: "bullet_count_max",
+          message: `${label} allows at most ${cap} bullet${cap === 1 ? "" : "s"} for this template (currently ${filled.length}).`,
+          observed: filled.length,
+        });
       }
     }
 
     const tooLong = filled.filter((b) => b.trim().length > charCap).length;
     if (tooLong > 0) {
-      violations.push(
-        `${label} has ${tooLong} bullet${tooLong === 1 ? "" : "s"} over ${charCap} characters — shorten ${tooLong === 1 ? "it" : "them"}.`
-      );
+      violations.push({
+        section: key,
+        kind: "bullet_too_long",
+        message: `${label} has ${tooLong} bullet${tooLong === 1 ? "" : "s"} over ${charCap} characters — shorten ${tooLong === 1 ? "it" : "them"}.`,
+        observed: tooLong,
+      });
     }
   }
 
