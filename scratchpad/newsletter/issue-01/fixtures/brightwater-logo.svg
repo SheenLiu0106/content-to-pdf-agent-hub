@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 48" width="220" height="48">
+  <rect x="0" y="8" width="32" height="32" rx="7" fill="#1E3A34"/>
+  <path d="M8 30c4-9 12-9 16 0" stroke="#C2703D" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <circle cx="16" cy="19" r="3.2" fill="#C2703D"/>
+  <text x="42" y="27" font-family="Georgia, serif" font-size="15" font-weight="700" fill="#1E3A34" letter-spacing="0.5">BRIGHTWATER</text>
+  <text x="42" y="39" font-family="Helvetica, Arial, sans-serif" font-size="7.5" fill="#6B6357" letter-spacing="2.4">FACILITIES GROUP</text>
+</svg>

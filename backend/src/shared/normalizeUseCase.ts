@@ -52,17 +52,55 @@ const SUMMARY_KEYS: SummaryKey[] = ["goals", "challenges", "solutions", "results
 // Customer Case Study summary policy: every section renders EXACTLY this many
 // bullets so the page-1 grid is symmetric and predictable.
 export const CASE_STUDY_BULLET_COUNT = 4;
-// Layout-safe per-bullet char cap for the case study cover grid. Lower than
-// the legacy 95 because the cover now carries 16 bullets in a 2×2 grid and
-// each must stay short (≈8–16 words) to fit page 1 without spilling. Prefer
-// semantic clause-trimming over a blunt cut (see compressCaseStudyBullet).
-export const CASE_STUDY_BULLET_CHAR_CAP = 90;
+// Layout-safe per-bullet char cap for the case study cover grid. Sized so a
+// complete, self-contained business sentence (~10–20 words) fits without being
+// cut mid-thought — the prior 90 forced the LLM to cram and left bullets
+// truncated. The 2×2 grid still fits page 1: dense-summary CSS + the cover's
+// min-height flex absorb the extra line, and the repair loop tightens only if a
+// real overflow is detected. Prefer semantic clause-trimming over a blunt cut
+// for the rare over-cap bullet (see compressCaseStudyBullet).
+export const CASE_STUDY_BULLET_CHAR_CAP = 120;
 // Lower bound the repair loop tightens to if (and only if) a page-1 overflow
 // risk is ever detected. Stays readable at the dense-summary 9pt bullet size.
 export const CASE_STUDY_BULLET_TIGHT_CHAR_CAP = 72;
 // A derived/source-mined candidate bullet must carry at least this many words
 // to be worth promoting — drops sentence fragments and stray headings.
 const MIN_DERIVED_BULLET_WORDS = 4;
+
+// Narrative sentences often open with a transition, conjunction, or demonstrative
+// that reads as broken or unprofessional when lifted out of prose into a
+// standalone bullet ("Unfortunately, …", "During …", "Because …", "This …",
+// "These …"). We reject such sentences as mined candidates rather than salvage
+// them — a clean section fallback beats a connector-led fragment.
+const DERIVED_OPENER_BLOCKLIST = new Set([
+  "ultimately", "therefore", "however", "moreover", "furthermore",
+  "additionally", "consequently", "meanwhile", "specifically", "notably",
+  "importantly", "indeed", "finally", "thus", "hence",
+  "unfortunately", "fortunately", "during", "because", "since", "while",
+  "although", "though", "as", "when", "if", "but", "and", "so", "yet",
+  "also", "then", "this", "these", "those", "that", "it", "they", "such",
+  "here", "there",
+]);
+
+const SENTENCE_TERMINATOR_RE = /[.!?]["')\]]?$/;
+
+// A mined sentence is only promoted to a bullet if it is already a clean,
+// complete, layout-safe point: it ends on a terminator, fits the bullet cap
+// WITHOUT truncation (so it never reads cut off mid-thought), carries enough
+// words, and does not open with a transition/demonstrative. Anything that
+// fails defers to the section's professional fallback bullets.
+function isCleanDerivedSentence(sentence: string): boolean {
+  const collapsed = sentence.trim().replace(/\s+/g, " ");
+  if (collapsed.length === 0 || collapsed.length > CASE_STUDY_BULLET_CHAR_CAP) {
+    return false;
+  }
+  if (!SENTENCE_TERMINATOR_RE.test(collapsed)) return false;
+  const words = collapsed.split(/\s+/).filter(Boolean);
+  if (words.length < MIN_DERIVED_BULLET_WORDS) return false;
+  const firstWord = words[0]!.replace(/[^a-zA-Z]/g, "").toLowerCase();
+  if (DERIVED_OPENER_BLOCKLIST.has(firstWord)) return false;
+  return true;
+}
 
 // Conservative, claim-free fallbacks used ONLY when a section has fewer than
 // four bullets and the source/narrative yields no more usable material. They
@@ -245,10 +283,11 @@ function deriveCandidateBullets(content: UseCase): string[] {
   const seen = new Set<string>();
   for (const text of sources) {
     for (const sentence of splitSentences(text)) {
-      const bullet = compressCaseStudyBullet(sentence);
-      if (bullet.split(/\s+/).filter(Boolean).length < MIN_DERIVED_BULLET_WORDS) {
-        continue;
-      }
+      // Only mine sentences that are already clean, complete bullets — never
+      // truncate a narrative sentence into a fragment or lift a connector-led
+      // clause. Unqualified sections fall back to professional defaults.
+      if (!isCleanDerivedSentence(sentence)) continue;
+      const bullet = sentence.trim().replace(/\s+/g, " ");
       const key = bulletKey(bullet);
       if (!key || seen.has(key)) continue;
       seen.add(key);

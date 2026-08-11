@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+
 @layer base {
   html {
     -webkit-font-smoothing: antialiased;
@@ -11,7 +12,19 @@
 
   body {
     font-feature-settings: "ss01", "cv01";
+    letter-spacing: -0.008em;
   }
+
+  /* The application background the floating shell sits on. */
+  body {
+    background:
+      radial-gradient(circle at 48% -10%, rgba(255, 255, 255, 0.95), transparent 34%),
+      linear-gradient(180deg, var(--bg-a) 0%, var(--bg-b) 100%);
+    background-attachment: fixed;
+    color: var(--ink);
+  }
+
+  button { text-align: inherit; }
 }
 
 /* Respect users who ask for less motion — disable entry choreography. */

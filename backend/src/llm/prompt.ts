@@ -85,7 +85,9 @@ Length guidance (PDF layout is sensitive to overruns — keep within these caps)
 - subtitle: a single short phrase, prefer ≤110 characters, or null.
 - solutionName: ≤45 characters. industry: ≤30 characters. useCaseFocus: ≤45 characters. Shorten rather than letting metadata wrap.
 - goals / challenges / solutions / results: for the Customer Case Study family, EXACTLY 4 bullets per list. For all other content types, at most 4 bullets per list.
-- Each summary bullet: one clear idea, ~8–16 words, hard max 90 characters. Do not repeat a point across bullets in the same list. Use plain business language.
+- Each summary bullet: one clear, COMPLETE idea expressed as a self-contained sentence — never a fragment cut off mid-thought. Target ~10–20 words, hard max 120 characters; end on a complete clause with a terminal period. Do not repeat a point across bullets in the same list. Use plain business language.
+- Each bullet must stand on its own out of context. Do NOT open a bullet with a transition, conjunction, or demonstrative that refers back to prose (e.g. "Unfortunately", "However", "Because", "During", "This", "These", "It", "Also", "Such"). Lead with the subject or action instead.
+- For the Customer Case Study family, produce a FULL set of 4 distinct, substantive bullets per section drawn from the source — do not under-deliver and leave the list to be padded. If the source is thin on a section, infer reasonable, claim-free points consistent with the source rather than emitting fewer than 4.
 - Bullets must use concise business language. Avoid long compound sentences, dependent clauses, parentheticals, or lists-inside-bullets.
 - For Results, qualitative outcomes are acceptable when the source provides no quantitative metrics — never fabricate numbers, percentages, or named figures.
 - executiveSummary: 2–4 sentences, target 80–110 words, never more than 110.

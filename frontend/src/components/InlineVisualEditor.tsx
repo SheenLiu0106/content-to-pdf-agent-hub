@@ -106,10 +106,10 @@ export default function InlineVisualEditor({ visual, onChange, onRemove }: Props
     <div
       tabIndex={0}
       onPaste={handlePaste}
-      className={`rounded-xl border p-3 shadow-inner focus:outline-none ${
+      className={`rounded-[9px] border p-3 shadow-inner focus:outline-none ${
         isSlot
-          ? "border-dashed border-amber-300 bg-amber-50/40"
-          : "border-slate-200 bg-slate-50/60"
+          ? "border-dashed border-amber-300 bg-review-tint/40"
+          : "border-hair bg-shell-pane"
       }`}
     >
       <input
@@ -126,7 +126,7 @@ export default function InlineVisualEditor({ visual, onChange, onRemove }: Props
       <div className="mb-2 flex items-center justify-between">
         <span
           className={`text-[10px] font-semibold uppercase tracking-[0.16em] ${
-            isSlot ? "text-amber-700" : "text-slate-500"
+            isSlot ? "text-review-ink" : "text-ink-mute"
           }`}
         >
           {labelText}
@@ -134,7 +134,7 @@ export default function InlineVisualEditor({ visual, onChange, onRemove }: Props
         <button
           type="button"
           onClick={onRemove}
-          className="rounded px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+          className="rounded px-2 py-1 text-xs font-medium text-alert-ink hover:bg-alert-tint"
         >
           {isSlot ? "Dismiss" : "Remove"}
         </button>
@@ -142,14 +142,14 @@ export default function InlineVisualEditor({ visual, onChange, onRemove }: Props
 
       <div className="flex items-start gap-3">
         <div
-          className={`flex h-16 w-24 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg border ${
+          className={`flex h-16 w-24 flex-shrink-0 items-center justify-center overflow-hidden rounded-[7px] border ${
             previewSrc
-              ? "border-slate-200 bg-white"
-              : "border-dashed border-slate-300 bg-white/60"
+              ? "border-hair bg-white"
+              : "border-dashed border-hair-strong bg-white/60"
           }`}
         >
           {busy ? (
-            <span className="text-[10px] font-medium text-slate-500">Processing…</span>
+            <span className="text-[10px] font-medium text-ink-mute">Processing…</span>
           ) : previewSrc ? (
             <img
               src={previewSrc}
@@ -157,7 +157,7 @@ export default function InlineVisualEditor({ visual, onChange, onRemove }: Props
               className="h-full w-full object-cover"
             />
           ) : (
-            <span className="text-[10px] font-medium text-slate-400">Image</span>
+            <span className="text-[10px] font-medium text-ink-faint">Image</span>
           )}
         </div>
         <div className="min-w-0 flex-1 space-y-2">
@@ -166,13 +166,13 @@ export default function InlineVisualEditor({ visual, onChange, onRemove }: Props
             value={visual.caption ?? ""}
             onChange={(e) => handleCaptionChange(e.target.value)}
             placeholder="Caption (shown below the image)"
-            className="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-xs text-slate-700 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+            className="w-full rounded-[6px] border border-hair-strong bg-white px-2 py-1 text-xs text-ink-soft outline-none focus:border-ember-400 focus:ring-2 focus:ring-ember-500/20"
           />
           {!isSlot && (
             <select
               value={visual.placement}
               onChange={(e) => handlePlacementChange(e.target.value)}
-              className="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-xs text-slate-700 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+              className="w-full rounded-[6px] border border-hair-strong bg-white px-2 py-1 text-xs text-ink-soft outline-none focus:border-ember-400 focus:ring-2 focus:ring-ember-500/20"
             >
               {PLACEMENT_CHOICES.map((p) => (
                 <option key={p} value={p}>
@@ -186,7 +186,7 @@ export default function InlineVisualEditor({ visual, onChange, onRemove }: Props
               type="button"
               onClick={() => inputRef.current?.click()}
               disabled={busy}
-              className="rounded-md border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-[6px] border border-hair-strong bg-white px-2.5 py-1 text-xs font-semibold text-ink-soft shadow-sm hover:bg-shell-pane disabled:cursor-not-allowed disabled:opacity-60"
             >
               {previewSrc ? "Replace" : "Upload"}
             </button>
@@ -194,7 +194,7 @@ export default function InlineVisualEditor({ visual, onChange, onRemove }: Props
               type="button"
               onClick={() => void handlePasteButton()}
               disabled={busy}
-              className="rounded-md border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-[6px] border border-hair-strong bg-white px-2.5 py-1 text-xs font-semibold text-ink-soft shadow-sm hover:bg-shell-pane disabled:cursor-not-allowed disabled:opacity-60"
             >
               Paste image
             </button>
@@ -203,12 +203,12 @@ export default function InlineVisualEditor({ visual, onChange, onRemove }: Props
       </div>
 
       {visual.src && !visual.dataUrl && !isSlot && (
-        <p className="mt-2 text-[11px] leading-snug text-slate-500">
-          Source URL: <span className="break-all text-slate-600">{visual.src}</span> —
+        <p className="mt-2 text-[11px] leading-snug text-ink-mute">
+          Source URL: <span className="break-all text-ink-soft">{visual.src}</span> —
           fetched at render time. Upload to embed a guaranteed copy.
         </p>
       )}
-      {warning && <p className="mt-2 text-xs text-amber-700">{warning}</p>}
+      {warning && <p className="mt-2 text-xs text-review-ink">{warning}</p>}
     </div>
   );
 }

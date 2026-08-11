@@ -75,10 +75,10 @@ export default function LogoUpload({ value, onChange }: Props) {
   return (
     <div tabIndex={0} onPaste={handlePaste} className="focus:outline-none">
       <div className="mb-1.5 flex items-baseline justify-between">
-        <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <label className="block text-xs font-semibold uppercase tracking-wide text-ink-mute">
           Logo
         </label>
-        <span className="text-[11px] text-slate-400">Optional</span>
+        <span className="text-[11px] text-ink-faint">Optional</span>
       </div>
       <input
         ref={inputRef}
@@ -98,7 +98,7 @@ export default function LogoUpload({ value, onChange }: Props) {
           aria-label={value ? "Replace logo" : "Upload logo"}
           onClick={() => inputRef.current?.click()}
           onKeyDown={handleThumbKeyDown}
-          className="flex h-14 w-14 flex-shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-slate-50 transition-colors hover:border-indigo-400 hover:bg-indigo-50/40 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+          className="flex h-14 w-14 flex-shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-[7px] border border-hair bg-shell-pane transition-colors hover:border-ember-400 hover:bg-ember-tint focus:border-ember-400 focus:outline-none focus:ring-2 focus:ring-ember-500/20"
         >
           {value ? (
             <img
@@ -107,7 +107,7 @@ export default function LogoUpload({ value, onChange }: Props) {
               className="max-h-full max-w-full object-contain"
             />
           ) : (
-            <div className="flex h-10 w-10 items-center justify-center rounded-md border border-dashed border-slate-300 text-[10px] font-medium text-slate-400">
+            <div className="flex h-10 w-10 items-center justify-center rounded-[6px] border border-dashed border-hair-strong text-[10px] font-medium text-ink-faint">
               Logo
             </div>
           )}
@@ -117,14 +117,14 @@ export default function LogoUpload({ value, onChange }: Props) {
             <button
               type="button"
               onClick={() => inputRef.current?.click()}
-              className="rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
+              className="rounded-[6px] border border-hair-strong bg-white px-2.5 py-1.5 text-xs font-semibold text-ink-soft shadow-sm hover:bg-shell-pane"
             >
               Upload
             </button>
             <button
               type="button"
               onClick={() => void handlePasteButton()}
-              className="rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
+              className="rounded-[6px] border border-hair-strong bg-white px-2.5 py-1.5 text-xs font-semibold text-ink-soft shadow-sm hover:bg-shell-pane"
             >
               Paste image
             </button>
@@ -132,19 +132,19 @@ export default function LogoUpload({ value, onChange }: Props) {
               <button
                 type="button"
                 onClick={() => onChange(null)}
-                className="rounded-md px-2.5 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50"
+                className="rounded-[6px] px-2.5 py-1.5 text-xs font-semibold text-alert-ink hover:bg-alert-tint"
               >
                 Remove
               </button>
             )}
           </div>
-          <p className="mt-1.5 text-[11px] leading-snug text-slate-500">
+          <p className="mt-1.5 text-[11px] leading-snug text-ink-mute">
             Upload from file, paste with Cmd+V / Ctrl+V, or use Paste image.
           </p>
-          <p className="text-[11px] text-slate-400">PNG, JPG, SVG · up to 2 MB</p>
+          <p className="text-[11px] text-ink-faint">PNG, JPG, SVG · up to 2 MB</p>
         </div>
       </div>
-      {warning && <p className="mt-2 text-xs text-amber-700">{warning}</p>}
+      {warning && <p className="mt-2 text-xs text-review-ink">{warning}</p>}
     </div>
   );
 }

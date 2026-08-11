@@ -3,7 +3,12 @@
 // base64 data URL so it can ride along on the JSON payload to /api/render-pdf.
 
 export const IMAGE_ACCEPTED_MIME = "image/png,image/jpeg,image/webp";
-export const IMAGE_MAX_FILE_BYTES = 8 * 1024 * 1024;
+// Checked on the ORIGINAL file, before downscaling. Kept generous because
+// fileToDataUrl shrinks every image to <=1600px / re-encoded JPEG (a few
+// hundred KB) regardless of input size, so the raw size barely affects the
+// payload — this cap only exists to reject pathologically huge files. Modern
+// phone photos routinely hit 10-15MB, so 8MB was rejecting normal uploads.
+export const IMAGE_MAX_FILE_BYTES = 25 * 1024 * 1024;
 export const IMAGE_WARN_FILE_BYTES = 2 * 1024 * 1024;
 export const IMAGE_MAX_DIMENSION = 1600;
 
@@ -57,7 +62,7 @@ export function checkImageFileSize(file: File): FileSizeCheck {
   if (file.size > IMAGE_MAX_FILE_BYTES) {
     return {
       ok: false,
-      warning: "File is larger than 8MB. Please choose a smaller image.",
+      warning: "File is larger than 25MB. Please choose a smaller image.",
     };
   }
   if (file.size > IMAGE_WARN_FILE_BYTES) {

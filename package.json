@@ -9,7 +9,9 @@
     "dev:frontend": "pnpm --filter frontend dev",
     "build": "pnpm --filter backend build && pnpm --filter frontend build",
     "typecheck": "pnpm --filter backend typecheck && pnpm --filter frontend typecheck",
-    "test": "pnpm --filter backend test",
+    "test": "pnpm --filter backend test && pnpm --filter frontend test",
+    "test:backend": "pnpm --filter backend test",
+    "test:frontend": "pnpm --filter frontend test",
     "install:browsers": "pnpm --filter backend exec playwright install chromium"
   },
   "devDependencies": {

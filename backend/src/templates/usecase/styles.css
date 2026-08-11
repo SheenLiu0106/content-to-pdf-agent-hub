@@ -31,6 +31,13 @@ body {
   page-break-after: always;
   break-after: page;
   overflow: hidden;
+  /* Fill the printable page (Letter 11in minus the 0.35in footer band) so
+     light content stretches to use the page instead of leaving a large blank
+     area below the summary grid. The hero and summary grid absorb the slack;
+     dense covers simply exceed this min-height and flow as before. */
+  display: flex;
+  flex-direction: column;
+  min-height: 10.6in;
 }
 
 /* Compact-cover variant — auto-applied when title/subtitle/summary bullets
@@ -142,6 +149,12 @@ body {
   column-gap: 0.3in;
   row-gap: 0.1in;
   margin-top: 6px;
+  /* The full 16-bullet grid carries enough content; do NOT spread the two
+     card rows apart (that opens a large gap between the top and bottom
+     sections). Keep the rows packed at the top and let the hero absorb any
+     leftover page height instead. */
+  flex: 0 1 auto;
+  align-content: start;
 }
 .cover.dense-summary .summary-section {
   padding: 0.07in 0 0.02in;
@@ -162,6 +175,11 @@ body {
   position: relative;
   width: 100%;
   height: 3.2in;
+  /* Grow to absorb page slack on light covers, but never shrink below the
+     per-density height above on dense covers. Capped so the photo never
+     dominates the whole page. */
+  flex: 1 0 auto;
+  max-height: 4.8in;
   overflow: hidden;
   background: #e2e8f0;
 }
@@ -219,8 +237,12 @@ body {
   text-transform: uppercase;
 }
 
-/* Cover body — padded content area below the hero. */
+/* Cover body — padded content area below the hero. Flex column so the
+   summary grid can absorb any remaining vertical slack. */
 .cover-body {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
   padding: 0.32in 0.6in 0.5in;
 }
 
@@ -283,6 +305,10 @@ body {
   column-gap: 0.32in;
   row-gap: 0.16in;
   margin-top: 4px;
+  /* Grow into leftover cover height and spread the card rows so light
+     content reaches toward the page bottom rather than clustering up top. */
+  flex: 1 0 auto;
+  align-content: space-between;
 }
 
 .summary-section {

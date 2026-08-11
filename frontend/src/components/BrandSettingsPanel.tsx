@@ -19,7 +19,7 @@ function TextInput({
 }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+      <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-faint">
         {label}
       </span>
       <input
@@ -27,7 +27,7 @@ function TextInput({
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-xl border-0 bg-white px-3.5 py-2.5 text-sm text-slate-800 outline-none ring-1 ring-inset ring-slate-200 transition-all duration-300 ease-spring placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-400/50"
+        className="w-full rounded-[7px] border border-hair-strong border-t-[rgba(36,37,34,0.15)] bg-gradient-to-b from-[rgba(237,237,232,0.9)] to-[rgba(255,255,252,0.92)] px-2.5 py-1.5 text-[11.5px] text-ink shadow-sunken outline-none transition-all duration-200 placeholder:text-ink-faint focus:from-white focus:to-white focus:ring-2 focus:ring-ember-500/25"
       />
     </label>
   );
@@ -44,21 +44,21 @@ function ColorInput({
 }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+      <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-faint">
         {label}
       </span>
-      <div className="flex items-center gap-2 rounded-xl bg-white p-1.5 ring-1 ring-inset ring-slate-200 transition-all duration-300 ease-spring focus-within:ring-2 focus-within:ring-indigo-400/50">
+      <div className="flex items-center gap-2 rounded-[7px] border border-hair-strong bg-white p-1 shadow-sunken transition-all duration-200 focus-within:ring-2 focus-within:ring-ember-500/25">
         <input
           type="color"
           value={value}
           onChange={(e) => onChange(e.target.value.toUpperCase())}
-          className="h-8 w-9 cursor-pointer rounded-lg border-0 bg-transparent p-0 [&::-webkit-color-swatch-wrapper]:p-1 [&::-webkit-color-swatch]:rounded-md [&::-webkit-color-swatch]:border-0"
+          className="h-8 w-9 cursor-pointer rounded-[7px] border-0 bg-transparent p-0 [&::-webkit-color-swatch-wrapper]:p-1 [&::-webkit-color-swatch]:rounded-[6px] [&::-webkit-color-swatch]:border-0"
         />
         <input
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full min-w-0 border-0 bg-transparent px-1 font-mono text-xs uppercase text-slate-700 outline-none"
+          className="w-full min-w-0 border-0 bg-transparent px-1 font-mono text-xs uppercase text-ink-soft outline-none"
         />
       </div>
     </label>
@@ -118,10 +118,10 @@ export default function BrandSettingsPanel({ config, onChange, embedded = false 
   if (embedded) return fields;
 
   return (
-    <section className="space-y-4 rounded-[1.5rem] bg-white/70 p-5 shadow-soft-sm ring-1 ring-slate-900/[0.04] backdrop-blur-sm">
+    <section className="space-y-4 rounded-[1.5rem] bg-white/70 p-5 shadow-soft-sm ring-1 ring-hair backdrop-blur-sm">
       <div>
-        <h3 className="text-[13px] font-bold tracking-tight text-slate-900">Brand</h3>
-        <p className="mt-0.5 text-[11px] leading-relaxed text-slate-400">
+        <h3 className="text-[13px] font-bold tracking-tight text-ink">Brand</h3>
+        <p className="mt-0.5 text-[11px] leading-relaxed text-ink-faint">
           These values appear in the PDF footer and theme.
         </p>
       </div>

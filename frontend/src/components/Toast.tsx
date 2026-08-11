@@ -18,23 +18,23 @@ export default function Toast({ title, description, onDismiss, durationMs = 4000
       <div
         role="status"
         aria-live="polite"
-        className="pointer-events-auto flex items-start gap-3 rounded-lg border border-emerald-200 bg-white px-4 py-3 shadow-lg ring-1 ring-emerald-100"
+        className="pointer-events-auto flex items-start gap-3 rounded-[7px] border border-success-line bg-white px-4 py-3 shadow-lg ring-1 ring-emerald-100"
       >
         <span
           aria-hidden
-          className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500 text-xs font-bold text-white"
+          className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-success-ink text-xs font-bold text-white"
         >
           ✓
         </span>
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-slate-900">{title}</p>
-          {description && <p className="mt-0.5 text-xs text-slate-600">{description}</p>}
+          <p className="text-sm font-semibold text-ink">{title}</p>
+          {description && <p className="mt-0.5 text-xs text-ink-soft">{description}</p>}
         </div>
         <button
           type="button"
           onClick={onDismiss}
           aria-label="Dismiss"
-          className="ml-2 rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+          className="ml-2 rounded p-1 text-ink-faint hover:bg-[#f1f1ee] hover:text-ink-soft"
         >
           ×
         </button>

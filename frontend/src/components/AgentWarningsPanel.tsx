@@ -26,26 +26,26 @@ export default function AgentWarningsPanel({
     return null;
 
   return (
-    <section className="rounded-2xl border border-amber-200 bg-amber-50/60 p-4 shadow-sm ring-1 ring-amber-100/60">
-      <h3 className="text-sm font-semibold text-amber-900">Agent notes</h3>
+    <section className="rounded-[9px] border border-review-line bg-review-tint p-4 shadow-sm ring-1 ring-review-line">
+      <h3 className="text-sm font-semibold text-review-ink">Agent notes</h3>
       {inlineVisualSlots > 0 && (
-        <p className="mt-2 text-xs text-amber-800">
+        <p className="mt-2 text-xs text-review-ink">
           This article appears to reference a diagram or figure. You can upload
           an inline image, or dismiss the suggested slot.
         </p>
       )}
       {warnings.length > 0 && (
-        <ul className="mt-2 space-y-1 text-xs text-amber-800">
+        <ul className="mt-2 space-y-1 text-xs text-review-ink">
           {warnings.map((w, i) => (
             <li key={i} className="flex gap-2">
-              <span className="select-none text-amber-500">•</span>
+              <span className="select-none text-review-ink">•</span>
               <span>{w}</span>
             </li>
           ))}
         </ul>
       )}
       {repairAttempts > 0 && (
-        <div className="mt-3 border-t border-amber-200/70 pt-2 text-[11px] text-amber-700">
+        <div className="mt-3 border-t border-review-line/70 pt-2 text-[11px] text-review-ink">
           <span className="font-semibold">
             Last render: {repairAttempts} repair attempt
             {repairAttempts === 1 ? "" : "s"}.

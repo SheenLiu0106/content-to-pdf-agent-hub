@@ -10,11 +10,32 @@ const MAX_CONCURRENT = 3;
 let inFlight = 0;
 const queue: Array<() => void> = [];
 
+async function launchBrowser(): Promise<Browser> {
+  const promise = chromium.launch({ args: ["--no-sandbox"] });
+  // Drop the cached promise if the launch itself fails, so a later call
+  // retries instead of re-awaiting a permanently-rejected promise.
+  promise.catch(() => {
+    if (browserPromise === promise) browserPromise = null;
+  });
+  browserPromise = promise;
+  return promise;
+}
+
 async function getBrowser(): Promise<Browser> {
-  if (!browserPromise) {
-    browserPromise = chromium.launch({ args: ["--no-sandbox"] });
+  if (browserPromise) {
+    try {
+      const existing = await browserPromise;
+      // A cached instance can be a browser that has since disconnected or
+      // crashed (dev hot-reload, OS reclaim, idle timeout). Re-launching is
+      // the only way to recover — otherwise newContext() throws "Target
+      // page, context or browser has been closed".
+      if (existing.isConnected()) return existing;
+    } catch {
+      // Fall through to relaunch.
+    }
+    browserPromise = null;
   }
-  return browserPromise;
+  return launchBrowser();
 }
 
 async function acquireSlot(): Promise<void> {

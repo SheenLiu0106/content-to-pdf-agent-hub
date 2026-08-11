@@ -22,7 +22,7 @@ function MetaField({
 }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+      <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-mute">
         {label}
       </span>
       <input
@@ -30,7 +30,7 @@ function MetaField({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-md border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 shadow-sm outline-none transition-colors focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+        className="w-full rounded-[6px] border border-hair bg-white px-3 py-1.5 text-sm text-ink shadow-sm outline-none transition-colors focus:border-ember-400 focus:ring-2 focus:ring-ember-500/20"
       />
     </label>
   );
@@ -38,7 +38,7 @@ function MetaField({
 
 function SectionEyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <h3 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+    <h3 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-mute">
       {children}
     </h3>
   );
@@ -71,10 +71,10 @@ export default function EditableCaseStudyPreview({
   }
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm ring-1 ring-slate-100/60">
+    <article className="overflow-hidden rounded-[9px] border border-hair bg-white shadow-sm ring-1 ring-hair-soft">
       {/* Document header — title + subtitle styled like a real document page */}
-      <header className="border-b border-slate-200 px-8 pb-7 pt-8">
-        <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-indigo-600">
+      <header className="border-b border-hair px-8 pb-7 pt-8">
+        <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-ember-ink">
           {documentLabel}
         </div>
         <input
@@ -82,14 +82,14 @@ export default function EditableCaseStudyPreview({
           value={content.title}
           onChange={(e) => patch("title", e.target.value)}
           placeholder="Untitled"
-          className="mt-2 w-full border-0 bg-transparent p-0 text-2xl font-bold leading-tight tracking-tight text-slate-900 outline-none placeholder:text-slate-300 focus:ring-0"
+          className="mt-2 w-full border-0 bg-transparent p-0 text-2xl font-bold leading-tight tracking-tight text-ink outline-none placeholder:text-ink-faint focus:ring-0"
         />
         <input
           type="text"
           value={content.subtitle ?? ""}
           onChange={(e) => patch("subtitle", e.target.value || null)}
           placeholder="Add a subtitle…"
-          className="mt-1 w-full border-0 bg-transparent p-0 text-base italic leading-snug text-slate-500 outline-none placeholder:text-slate-300 focus:ring-0"
+          className="mt-1 w-full border-0 bg-transparent p-0 text-base italic leading-snug text-ink-mute outline-none placeholder:text-ink-faint focus:ring-0"
         />
 
         <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -120,34 +120,34 @@ export default function EditableCaseStudyPreview({
 
         <section>
           <SectionEyebrow>Page 1 summary</SectionEyebrow>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-ink-mute">
             Four items in each list appear on the cover page.
           </p>
           <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <EditableBulletList
               title="Goals"
-              accentClass="border-t-cyan-500"
+              accentVar="--doc-goals"
               items={content.goals}
               onChange={(v) => patch("goals", v)}
               placeholder="A goal or objective…"
             />
             <EditableBulletList
               title="Challenges"
-              accentClass="border-t-amber-500"
+              accentVar="--doc-challenge"
               items={content.challenges}
               onChange={(v) => patch("challenges", v)}
               placeholder="A challenge or pain point…"
             />
             <EditableBulletList
               title="Solutions"
-              accentClass="border-t-slate-800"
+              accentVar="--doc-solutions"
               items={content.solutions}
               onChange={(v) => patch("solutions", v)}
               placeholder="A solution or capability…"
             />
             <EditableBulletList
               title="Results"
-              accentClass="border-t-emerald-500"
+              accentVar="--doc-results"
               items={content.results}
               onChange={(v) => patch("results", v)}
               placeholder="A result or outcome…"
@@ -162,7 +162,7 @@ export default function EditableCaseStudyPreview({
             onChange={(e) => patch("executiveSummary", e.target.value)}
             rows={5}
             placeholder="A short, clear summary of the customer story…"
-            className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50/60 px-4 py-3 text-sm leading-relaxed text-slate-800 shadow-inner outline-none transition-colors focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100"
+            className="mt-2 w-full rounded-[9px] border border-hair bg-shell-pane px-4 py-3 text-sm leading-relaxed text-ink shadow-inner outline-none transition-colors focus:border-ember-400 focus:bg-white focus:ring-2 focus:ring-ember-500/20"
           />
         </section>
 
@@ -177,26 +177,26 @@ export default function EditableCaseStudyPreview({
             <button
               type="button"
               onClick={addPullQuote}
-              className="rounded-md border border-slate-300 bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
+              className="rounded-[6px] border border-hair-strong bg-white px-3 py-1 text-xs font-semibold text-ink-soft shadow-sm hover:bg-shell-pane"
             >
               + Add quote
             </button>
           </div>
           {content.pullQuotes.length === 0 ? (
-            <p className="mt-2 text-sm italic text-slate-400">No pull quotes.</p>
+            <p className="mt-2 text-sm italic text-ink-faint">No pull quotes.</p>
           ) : (
             <div className="mt-3 space-y-3">
               {content.pullQuotes.map((q, i) => (
                 <div
                   key={i}
-                  className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 shadow-inner"
+                  className="rounded-[9px] border border-hair bg-shell-pane p-3 shadow-inner"
                 >
                   <textarea
                     value={q.quote}
                     onChange={(e) => updatePullQuote(i, { ...q, quote: e.target.value })}
                     placeholder="The quote text"
                     rows={2}
-                    className="mb-2 w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-sm italic text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                    className="mb-2 w-full rounded-[6px] border border-hair bg-white px-2 py-1 text-sm italic text-ink outline-none focus:border-ember-400 focus:ring-2 focus:ring-ember-500/20"
                   />
                   <div className="flex items-center gap-2">
                     <input
@@ -206,12 +206,12 @@ export default function EditableCaseStudyPreview({
                         updatePullQuote(i, { ...q, attribution: e.target.value || null })
                       }
                       placeholder="Attribution (e.g., Jane Doe, CTO)"
-                      className="flex-1 rounded-md border border-slate-300 bg-white px-2 py-1 text-xs text-slate-700 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                      className="flex-1 rounded-[6px] border border-hair-strong bg-white px-2 py-1 text-xs text-ink-soft outline-none focus:border-ember-400 focus:ring-2 focus:ring-ember-500/20"
                     />
                     <button
                       type="button"
                       onClick={() => removePullQuote(i)}
-                      className="rounded px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+                      className="rounded px-2 py-1 text-xs font-medium text-alert-ink hover:bg-alert-tint"
                     >
                       Remove
                     </button>
@@ -229,7 +229,7 @@ export default function EditableCaseStudyPreview({
             onChange={(e) => patch("callToAction", e.target.value || null)}
             rows={3}
             placeholder="What should the reader do next?"
-            className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50/60 px-4 py-3 text-sm leading-relaxed text-slate-800 shadow-inner outline-none transition-colors focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100"
+            className="mt-2 w-full rounded-[9px] border border-hair bg-shell-pane px-4 py-3 text-sm leading-relaxed text-ink shadow-inner outline-none transition-colors focus:border-ember-400 focus:bg-white focus:ring-2 focus:ring-ember-500/20"
           />
         </section>
       </div>

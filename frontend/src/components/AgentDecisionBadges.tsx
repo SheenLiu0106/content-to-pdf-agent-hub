@@ -48,15 +48,15 @@ function Field({
 }) {
   return (
     <div className="flex min-w-0 flex-col">
-      <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+      <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-mute">
         {label}
       </span>
       {highlight ? (
-        <span className="mt-0.5 inline-flex w-fit max-w-full items-center rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-800 ring-1 ring-amber-200">
+        <span className="mt-0.5 inline-flex w-fit max-w-full items-center rounded-full bg-review-tint px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-review-ink ring-1 ring-review-line">
           {value}
         </span>
       ) : (
-        <span className="mt-0.5 truncate text-sm font-semibold text-slate-900">
+        <span className="mt-0.5 truncate text-sm font-semibold text-ink">
           {value}
         </span>
       )}
@@ -77,25 +77,25 @@ export default function AgentDecisionBadges({
     ? getTemplateDefinition(agentRecommendedTemplateId).label
     : getTemplateDefinition(strategy.templateId).label;
   return (
-    <section className="rounded-2xl border border-indigo-200 bg-white p-4 shadow-sm ring-1 ring-indigo-100/40">
+    <section className="rounded-[9px] border border-ember-line bg-white p-4 shadow-sm ring-1 ring-ember-500/15">
       <header className="flex items-center justify-between gap-3">
         <div>
-          <h3 className="text-sm font-semibold text-indigo-900">
+          <h3 className="text-sm font-semibold text-ember-ink">
             Agent Decision Summary
           </h3>
-          <p className="text-[11px] text-indigo-700/80">
+          <p className="text-[11px] text-ember-ink/80">
             Read-only — the agent picked these defaults from your source content.
           </p>
         </div>
         {strategy.reviewRequired && (
-          <span className="inline-flex shrink-0 items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-800 ring-1 ring-amber-200">
+          <span className="inline-flex shrink-0 items-center rounded-full bg-review-tint px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-review-ink ring-1 ring-review-line">
             Review recommended
           </span>
         )}
       </header>
 
       {/* Decision chain: classification → recommendation → final template → status */}
-      <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-slate-100 pt-3 sm:grid-cols-4">
+      <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-hair-soft pt-3 sm:grid-cols-4">
         <Field
           label="Agent classification"
           value={USE_CASE_CONTENT_TYPE_LABELS[intake.detectedContentType]}
@@ -113,7 +113,7 @@ export default function AgentDecisionBadges({
       </div>
 
       {/* Agent layout plan metadata */}
-      <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-slate-100 pt-3 sm:grid-cols-4">
+      <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-hair-soft pt-3 sm:grid-cols-4">
         <Field
           label="Target length"
           value={TARGET_LENGTH_LABELS[strategy.targetLength]}
@@ -133,23 +133,23 @@ export default function AgentDecisionBadges({
       </div>
 
       {isOverride ? (
-        <p className="mt-3 border-t border-slate-100 pt-3 text-xs italic text-slate-600">
+        <p className="mt-3 border-t border-hair-soft pt-3 text-xs italic text-ink-soft">
           Showing your selected template — the agent recommended{" "}
           {agentRecommendationLabel}.
         </p>
       ) : (
         intake.templateRecommendation?.rationale && (
-          <p className="mt-3 border-t border-slate-100 pt-3 text-xs italic text-slate-600">
+          <p className="mt-3 border-t border-hair-soft pt-3 text-xs italic text-ink-soft">
             {intake.templateRecommendation.rationale}
           </p>
         )
       )}
 
       {warnings.length > 0 && (
-        <ul className="mt-3 space-y-1 border-t border-slate-100 pt-3 text-xs text-amber-800">
+        <ul className="mt-3 space-y-1 border-t border-hair-soft pt-3 text-xs text-review-ink">
           {warnings.map((w, i) => (
             <li key={i} className="flex gap-2">
-              <span className="select-none text-amber-500">⚠</span>
+              <span className="select-none text-review-ink">⚠</span>
               <span>{w}</span>
             </li>
           ))}

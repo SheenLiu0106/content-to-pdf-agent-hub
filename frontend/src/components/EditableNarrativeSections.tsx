@@ -31,40 +31,40 @@ export default function EditableNarrativeSections({
   }
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <section className="rounded-[9px] border border-hair bg-white p-5 shadow-sm">
       <div className="mb-3 flex items-center justify-between gap-2">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-ink-mute">
           Narrative Sections
         </h3>
         <button
           type="button"
           onClick={add}
-          className="rounded-md border border-slate-300 bg-white px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+          className="rounded-[6px] border border-hair-strong bg-white px-3 py-1 text-xs font-semibold text-ink-soft hover:bg-shell-pane"
         >
           + Add section
         </button>
       </div>
       {sections.length === 0 ? (
-        <p className="text-sm italic text-slate-400">
+        <p className="text-sm italic text-ink-faint">
           No narrative sections. Click "+ Add section" to start.
         </p>
       ) : (
         <div className="space-y-4">
           {sections.map((s, i) => (
-            <div key={i} className="rounded-lg border border-slate-200 bg-slate-50/50 p-3">
+            <div key={i} className="rounded-[7px] border border-hair bg-shell-pane p-3">
               <div className="mb-2 flex items-center gap-2">
                 <input
                   type="text"
                   value={s.heading}
                   onChange={(e) => update(i, { heading: e.target.value })}
                   placeholder="Section heading"
-                  className="flex-1 rounded-md border border-slate-300 bg-white px-2 py-1 text-sm font-semibold text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                  className="flex-1 rounded-[6px] border border-hair-strong bg-white px-2 py-1 text-sm font-semibold text-ink outline-none focus:border-ember-400 focus:ring-2 focus:ring-ember-500/20"
                 />
                 <button
                   type="button"
                   onClick={() => remove(i)}
                   aria-label="Remove section"
-                  className="rounded px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+                  className="rounded px-2 py-1 text-xs font-medium text-alert-ink hover:bg-alert-tint"
                 >
                   Remove
                 </button>
@@ -74,7 +74,7 @@ export default function EditableNarrativeSections({
                 onChange={(e) => update(i, { body: e.target.value })}
                 placeholder="Section body. Use blank lines to separate paragraphs."
                 rows={6}
-                className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm leading-relaxed text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                className="w-full rounded-[6px] border border-hair bg-white px-3 py-2 text-sm leading-relaxed text-ink outline-none focus:border-ember-400 focus:ring-2 focus:ring-ember-500/20"
               />
               {renderAfterBody && (
                 <div className="mt-3">{renderAfterBody(i)}</div>
