@@ -1,4 +1,4 @@
-# SHEEN｜Content to PDF Agent Hub
+# proofline-content-ops
 
 An AI-powered content-to-PDF agent hub for turning pasted content into branded, ready-to-share PDFs.
 
